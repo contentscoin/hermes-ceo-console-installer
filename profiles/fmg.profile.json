@@ -1,0 +1,16 @@
+{
+  "profileName": "FMG Alpha",
+  "assistantName": "hela",
+  "theme": "cherry-blossom",
+  "defaultPort": 8788,
+  "defaultCompany": "FMG",
+  "paperclipBaseUrl": "",
+  "telegramDefaultTargetLabel": "Pax Team Group",
+  "features": {
+    "memoryCandidateInbox": true,
+    "paperclipDecisionIntelligence": true,
+    "sharenoteTelegramPack": true,
+    "autoResearchPack": true
+  },
+  "secretsIncluded": false
+}

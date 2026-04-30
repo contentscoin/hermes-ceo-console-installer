@@ -1,0 +1,15 @@
+# local build/dependency output
+node_modules/
+dist/
+out/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+*.zip
+*.dmg
+*.exe
+*.msi
+*.pkg
+.cache/

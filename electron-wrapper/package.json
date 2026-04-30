@@ -1,0 +1,26 @@
+{
+  "name": "hermes-ceo-console-desktop",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "description": "Desktop wrapper and setup launcher for Hermes WebUI on localhost:8788",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:mac": "electron-builder --mac dmg",
+    "build:win": "electron-builder --win nsis",
+    "dist": "electron-builder -mwl"
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.fmg.hermes-ceo-console",
+    "productName": "Hermes CEO Console",
+    "files": ["main.js", "preload.js", "setup.html", "setup.js", "logs.js", "package.json"],
+    "extraResources": [{"from": "../", "to": "installer", "filter": ["install-macos.sh", "install-windows.ps1", "scripts/**", "templates/**", "profiles/**", "installer.manifest.json"]}],
+    "mac": {"target": "dmg", "category": "public.app-category.productivity"},
+    "win": {"target": "nsis"},
+    "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true}
+  }
+}

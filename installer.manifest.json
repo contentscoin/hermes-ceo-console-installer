@@ -1,0 +1,15 @@
+{
+  "productName": "Hermes CEO Console",
+  "appId": "com.fmg.hermes-ceo-console",
+  "defaultPort": 8788,
+  "primaryRepoUrl": "https://github.com/contentscoin/hermes-for-web-ceo-console.git",
+  "fallbackRepoUrl": "https://github.com/reallygood83/hermes-for-web.git",
+  "installDir": "~/.hermes/webui/workspace/hermes-for-web",
+  "homepage": "https://github.com/contentscoin/hermes-ceo-console-installer",
+  "secretsIncluded": false,
+  "integrations": {
+    "telegram": {"mode": "user-token", "autoSend": false},
+    "paperclip": {"mode": "user-config", "autoReflect": false},
+    "codex": {"mode": "oauth-device-login", "silentLogin": false}
+  }
+}

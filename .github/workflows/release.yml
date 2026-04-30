@@ -1,0 +1,53 @@
+name: Build desktop installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  package-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build script installer zip
+        run: |
+          zip -r hermes-ceo-console-installer-pack.zip install-macos.sh install-windows.ps1 scripts templates profiles installer.manifest.json README.md LICENSE
+          sha256sum hermes-ceo-console-installer-pack.zip > hermes-ceo-console-installer-pack.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: script-installer-pack
+          path: |
+            hermes-ceo-console-installer-pack.zip
+            hermes-ceo-console-installer-pack.zip.sha256
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Install deps and build dmg
+        working-directory: electron-wrapper
+        run: |
+          npm install
+          npm run build:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-dmg
+          path: electron-wrapper/dist/*.dmg
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Install deps and build exe
+        working-directory: electron-wrapper
+        run: |
+          npm install
+          npm run build:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: electron-wrapper/dist/*.exe
