@@ -6,6 +6,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   package-scripts:
     runs-on: ubuntu-latest
@@ -13,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build script installer zip
         run: |
-          zip -r hermes-ceo-console-installer-pack.zip install-macos.sh install-windows.ps1 scripts templates profiles installer.manifest.json README.md LICENSE
+          zip -r hermes-ceo-console-installer-pack.zip install-macos.sh install-windows.ps1 scripts templates profiles installer.manifest.json README.md LICENSE docs/SIGNING.md
           sha256sum hermes-ceo-console-installer-pack.zip > hermes-ceo-console-installer-pack.zip.sha256
       - uses: actions/upload-artifact@v4
         with:
@@ -21,33 +24,87 @@ jobs:
           path: |
             hermes-ceo-console-installer-pack.zip
             hermes-ceo-console-installer-pack.zip.sha256
+
   build-mac:
     runs-on: macos-latest
+    env:
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Install deps and build dmg
+      - name: Import Developer ID certificate if available
+        env:
+          MAC_CERTIFICATE_P12_BASE64: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 }}
+          MAC_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          if [ -z "$MAC_CERTIFICATE_P12_BASE64" ]; then
+            echo "MAC_CERTIFICATE_P12_BASE64 not set; building without Developer ID signing."
+            exit 0
+          fi
+          CERT_PATH="$RUNNER_TEMP/developer_id.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          echo "$MAC_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$MAC_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed s/\"//g)
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+      - name: Install deps and build mac DMG
         working-directory: electron-wrapper
         run: |
           npm install
           npm run build:mac
+      - name: Checksums
+        shell: bash
+        run: |
+          cd electron-wrapper/dist
+          shasum -a 256 *.dmg > mac-dmg.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: mac-dmg
-          path: electron-wrapper/dist/*.dmg
+          path: |
+            electron-wrapper/dist/*.dmg
+            electron-wrapper/dist/mac-dmg.sha256
+
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Install deps and build exe
+      - name: Prepare Windows signing certificate if available
+        shell: pwsh
+        env:
+          WIN_CERTIFICATE_PFX_BASE64: ${{ secrets.WIN_CERTIFICATE_PFX_BASE64 }}
+          WIN_CERTIFICATE_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WIN_CERTIFICATE_PFX_BASE64)) {
+            Write-Host "WIN_CERTIFICATE_PFX_BASE64 not set; building unsigned Windows installer."
+            exit 0
+          }
+          $certPath = Join-Path $env:RUNNER_TEMP 'windows-code-signing.pfx'
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:WIN_CERTIFICATE_PFX_BASE64))
+          "CSC_LINK=$certPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "CSC_KEY_PASSWORD=$env:WIN_CERTIFICATE_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Install deps and build Windows installer
         working-directory: electron-wrapper
         run: |
           npm install
           npm run build:win
+      - name: Checksums
+        shell: pwsh
+        run: |
+          cd electron-wrapper/dist
+          Get-FileHash *.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $($_.Path | Split-Path -Leaf)" } | Set-Content windows-exe.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: electron-wrapper/dist/*.exe
+          path: |
+            electron-wrapper/dist/*.exe
+            electron-wrapper/dist/windows-exe.sha256

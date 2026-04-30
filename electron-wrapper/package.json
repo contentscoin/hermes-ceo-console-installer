@@ -4,6 +4,7 @@
   "private": true,
   "description": "Desktop wrapper and setup launcher for Hermes WebUI on localhost:8788",
   "main": "main.js",
+  "author": "FMG",
   "scripts": {
     "start": "electron .",
     "build:mac": "electron-builder --mac dmg",
@@ -11,6 +12,7 @@
     "dist": "electron-builder -mwl"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.5.0",
     "electron": "^30.5.1",
     "electron-builder": "^24.13.3"
   },
@@ -19,8 +21,23 @@
     "productName": "Hermes CEO Console",
     "files": ["main.js", "preload.js", "setup.html", "setup.js", "logs.js", "package.json"],
     "extraResources": [{"from": "../", "to": "installer", "filter": ["install-macos.sh", "install-windows.ps1", "scripts/**", "templates/**", "profiles/**", "installer.manifest.json"]}],
-    "mac": {"target": "dmg", "category": "public.app-category.productivity"},
-    "win": {"target": "nsis"},
+    "afterSign": "scripts/notarize.js",
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "sign": false
+    },
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": true,
+      "verifyUpdateCodeSignature": false
+    },
     "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true}
   }
 }
