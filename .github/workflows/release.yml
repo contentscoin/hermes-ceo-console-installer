@@ -83,7 +83,15 @@ jobs:
             exit 0
           fi
           cd electron-wrapper/dist
+          SIGN_IDENTITY=$(security find-identity -v -p codesigning | awk -F '"' '/Developer ID Application/ {print $2; exit}')
+          if [ -z "$SIGN_IDENTITY" ]; then
+            echo "No Developer ID Application signing identity available for DMG signing."
+            exit 1
+          fi
           for dmg in *.dmg; do
+            echo "Signing $dmg with $SIGN_IDENTITY..."
+            codesign --force --sign "$SIGN_IDENTITY" --timestamp "$dmg"
+            codesign -dv --verbose=4 "$dmg"
             echo "Submitting $dmg for DMG notarization..."
             xcrun notarytool submit "$dmg" --apple-id "$HERMES_NOTARIZE_APPLE_ID" --password "$HERMES_NOTARIZE_APPLE_APP_SPECIFIC_PASSWORD" --team-id "$HERMES_NOTARIZE_APPLE_TEAM_ID" --wait
             xcrun stapler staple "$dmg"
