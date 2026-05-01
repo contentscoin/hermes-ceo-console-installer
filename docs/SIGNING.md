@@ -69,10 +69,32 @@ Do not paste these values into chat, README, issues, or logs.
 
 ## Creating the Windows certificate secret
 
+Use a real OV/EV Windows code-signing certificate exported as `.pfx`. Do not commit or paste the PFX/password into chat.
+
+macOS/Linux one-line pattern:
+
+```bash
+base64 -i /path/to/CodeSigningCert.pfx | tr -d '\n\r[:space:]' | gh secret set WIN_CERTIFICATE_PFX_BASE64 --repo contentscoin/hermes-ceo-console-installer
+```
+
+Then register the PFX password interactively:
+
+```bash
+gh secret set WIN_CERTIFICATE_PASSWORD --repo contentscoin/hermes-ceo-console-installer
+```
+
+Enter the password locally, press Enter, then Ctrl+D.
+
+Windows PowerShell pattern:
+
 ```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("CodeSigningCert.pfx")) | Set-Clipboard
-gh secret set WIN_CERTIFICATE_PFX_BASE64 --repo contentscoin/hermes-ceo-console-installer --body "<clipboard-value>"
-gh secret set WIN_CERTIFICATE_PASSWORD --repo contentscoin/hermes-ceo-console-installer --body "<pfx-password>"
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("CodeSigningCert.pfx")) | gh secret set WIN_CERTIFICATE_PFX_BASE64 --repo contentscoin/hermes-ceo-console-installer
+```
+
+Then:
+
+```powershell
+gh secret set WIN_CERTIFICATE_PASSWORD --repo contentscoin/hermes-ceo-console-installer
 ```
 
 ## Running a signed build

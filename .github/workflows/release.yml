@@ -127,7 +127,8 @@ jobs:
             exit 0
           }
           $certPath = Join-Path $env:RUNNER_TEMP 'windows-code-signing.pfx'
-          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:WIN_CERTIFICATE_PFX_BASE64))
+          $cleaned = ($env:WIN_CERTIFICATE_PFX_BASE64 -replace '\\s+', '')
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($cleaned))
           "CSC_LINK=$certPath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "CSC_KEY_PASSWORD=$env:WIN_CERTIFICATE_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Install deps and build Windows installer
@@ -140,6 +141,24 @@ jobs:
         run: |
           cd electron-wrapper/dist
           Get-FileHash *.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $($_.Path | Split-Path -Leaf)" } | Set-Content windows-exe.sha256
+      - name: Verify Windows Authenticode signature if signing secrets are available
+        shell: pwsh
+        env:
+          WIN_CERTIFICATE_PFX_BASE64: ${{ secrets.WIN_CERTIFICATE_PFX_BASE64 }}
+          WIN_CERTIFICATE_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
+        run: |
+          cd electron-wrapper/dist
+          $exe = Get-ChildItem -Filter '*.exe' | Select-Object -First 1
+          if ($null -eq $exe) { throw 'No Windows EXE artifact found.' }
+          $sig = Get-AuthenticodeSignature $exe.FullName
+          $sig | Format-List
+          if ([string]::IsNullOrWhiteSpace($env:WIN_CERTIFICATE_PFX_BASE64)) {
+            Write-Host "Windows signing secrets are not set; unsigned build verification only."
+            exit 0
+          }
+          if ($sig.Status -ne 'Valid') {
+            throw "Windows Authenticode signature is not valid: $($sig.Status) $($sig.StatusMessage)"
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: windows-exe

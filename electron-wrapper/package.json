@@ -36,7 +36,9 @@
     "win": {
       "target": "nsis",
       "signAndEditExecutable": true,
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "signingHashAlgorithms": ["sha256"],
+      "rfc3161TimeStampServer": "http://timestamp.digicert.com"
     },
     "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true}
   }
