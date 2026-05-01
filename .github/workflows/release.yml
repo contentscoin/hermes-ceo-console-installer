@@ -47,7 +47,22 @@ jobs:
           fi
           CERT_PATH="$RUNNER_TEMP/developer_id.p12"
           KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-          echo "$MAC_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERT_PATH"
+          python3 - <<'PY'
+          import base64, os, pathlib, re, sys
+          raw = os.environ.get('MAC_CERTIFICATE_P12_BASE64', '')
+          cleaned = re.sub(r'\s+', '', raw)
+          if not cleaned:
+              print('MAC_CERTIFICATE_P12_BASE64 is empty after whitespace cleanup', file=sys.stderr)
+              sys.exit(1)
+          try:
+              data = base64.b64decode(cleaned, validate=False)
+          except Exception as exc:
+              print(f'Failed to decode MAC_CERTIFICATE_P12_BASE64: {exc}', file=sys.stderr)
+              sys.exit(1)
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'developer_id.p12'
+          out.write_bytes(data)
+          print(f'Decoded Developer ID certificate bytes: {len(data)}')
+          PY
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
