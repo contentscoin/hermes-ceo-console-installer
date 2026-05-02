@@ -139,7 +139,8 @@ Telegram bot token은 BotFather에서 생성해야 합니다.
 
 필요한 값:
 
-- `PAPERCLIP_BASE_URL`
+- `PAPERCLIP_WEB_URL` — WebUI 상단 Paperclip 탭에 embed되는 실제 Paperclip 작업 화면 URL. 기본값은 `http://127.0.0.1:3100` 입니다.
+- `PAPERCLIP_BASE_URL` — MCP/API 작업용 Paperclip base URL
 - `PAPERCLIP_DEFAULT_COMPANY`
 - 필요한 경우 `PAPERCLIP_API_TOKEN`
 

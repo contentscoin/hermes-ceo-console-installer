@@ -102,6 +102,7 @@ def status(port, install_dir):
         'webui_url': f'http://127.0.0.1:{port}',
         'telegram': 'configured' if env.get('TELEGRAM_BOT_TOKEN') else 'missing',
         'paperclip': 'configured' if env.get('PAPERCLIP_BASE_URL') and env.get('PAPERCLIP_DEFAULT_COMPANY') else 'missing',
+        'paperclip_web_url': env.get('PAPERCLIP_WEB_URL') or 'http://127.0.0.1:3100',
         'codex': 'installed_login_unverified' if codex_ok else 'missing',
         'secrets_redacted': True,
     }
@@ -143,9 +144,11 @@ def clone_or_update(repo, install_dir):
 def configure_integrations(args):
     updates = {}
     if not args.skip_paperclip:
-        base = ask('Paperclip base URL (blank to skip)', '', yes=args.yes)
+        web_url = ask('Paperclip web URL for WebUI live tab', 'http://127.0.0.1:3100', yes=args.yes)
+        base = ask('Paperclip API/base URL for MCP work (blank to skip)', '', yes=args.yes)
         company = ask('Paperclip default company', 'FMG', yes=args.yes)
         token = '' if args.yes else ask('Paperclip API token if required (blank to skip)', '', secret=True)
+        if web_url: updates['PAPERCLIP_WEB_URL'] = web_url
         if base: updates['PAPERCLIP_BASE_URL'] = base
         if company: updates['PAPERCLIP_DEFAULT_COMPANY'] = company
         if token: updates['PAPERCLIP_API_TOKEN'] = token
