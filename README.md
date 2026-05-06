@@ -80,8 +80,11 @@ http://127.0.0.1:8788
 
 1. Release에서 `Hermes CEO Console Setup *.exe` 다운로드
 2. 설치 실행
-3. WSL2가 없으면 안내에 따라 설치
-4. Setup Wizard에서 Hermes, Codex, Telegram, Paperclip 설정
+3. 앱에서 `처음 설치 / Setup Wizard`를 누르면 별도 PowerShell 창이 열립니다.
+4. WSL2가 없으면 안내에 따라 설치
+5. PowerShell Setup Wizard에서 Hermes, Codex, Telegram, Paperclip 설정
+
+주의: Setup Wizard는 Codex login, Telegram token, Paperclip 값처럼 사용자가 직접 입력해야 하는 단계가 있으므로 앱 내부의 숨은 백그라운드가 아니라 눈에 보이는 PowerShell 창에서 진행됩니다. 버튼을 눌렀는데 화면이 바뀌지 않으면 Windows 작업표시줄의 새 PowerShell 창이나 보안 경고 창을 먼저 확인하세요.
 
 ### 방법 B: PowerShell script pack
 
@@ -101,7 +104,15 @@ WSL2가 없다면 관리자 PowerShell에서 먼저:
 wsl --install -d Ubuntu
 ```
 
-그 뒤 Windows 재시작 또는 Ubuntu 첫 실행을 완료하고 installer를 다시 실행하세요.
+그 뒤 Windows 재시작 또는 Ubuntu 첫 실행을 완료하고 installer를 다시 실행하세요. Windows 설치가 중간에 멈추거나 바로 닫히면 대부분 아래 2가지 중 하나입니다.
+
+```powershell
+wsl -l -v
+wsl bash -lc "python3 --version && git --version && curl --version"
+```
+
+- `wsl bash`가 실패하면 Ubuntu를 한 번 직접 열어 Linux username/password 초기화를 끝낸 뒤 다시 실행하세요.
+- `python3`, `git`, `curl` 중 하나가 없으면 최신 installer가 WSL 안에서 자동 설치를 시도합니다. 수동으로는 `wsl bash -lc "sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip git curl ca-certificates"`를 실행하면 됩니다.
 
 ## Codex CLI login
 

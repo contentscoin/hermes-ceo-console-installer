@@ -28,6 +28,7 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
 }
 function Step($m){ Write-Host "`n==> $m" -ForegroundColor Cyan }
 function Has($cmd){ return [bool](Get-Command $cmd -ErrorAction SilentlyContinue) }
+function Quote-BashArg([string]$s){ return "'" + ($s.Replace("'", "'`"'`"'")) + "'" }
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Step "Check WSL2"
@@ -38,6 +39,34 @@ if(-not (Has wsl)){
   exit 1
 }
 try { wsl -l -v } catch { Write-Warning "Could not list WSL distros. Open Ubuntu once, finish Linux user setup, then rerun."; exit 1 }
+try {
+  wsl bash -lc "printf wsl-ready" | Out-Null
+} catch {
+  Write-Warning "WSL is installed, but the default Linux distro is not ready."
+  Write-Host "Open Ubuntu once, finish the Linux username/password setup, then rerun this installer."
+  exit 1
+}
+
+Step "Check WSL prerequisites"
+$bootstrap = @'
+set -e
+missing=""
+for cmd in python3 git curl; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then missing="$missing $cmd"; fi
+done
+if [ -n "$missing" ]; then
+  echo "Installing WSL prerequisites:$missing"
+  if command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update
+    sudo apt-get install -y python3 python3-venv python3-pip git curl ca-certificates
+  else
+    echo "Missing required commands:$missing"
+    echo "Please install python3, git, and curl inside your WSL distro, then rerun."
+    exit 1
+  fi
+fi
+'@
+wsl bash -lc $bootstrap
 
 Step "Install/update Hermes runtime inside WSL"
 $wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl")
@@ -49,7 +78,8 @@ if($SkipPaperclip){ $wizardArgs += "--skip-paperclip" }
 if($SkipHermesUpdate){ $wizardArgs += "--skip-hermes-update" }
 $wizardWin = Join-Path $ScriptDir "scripts\first_run_wizard.py"
 $wizardWsl = (wsl wslpath -a ($wizardWin -replace '\\','/')).Trim()
-wsl bash -lc "python3 '$wizardWsl' $($wizardArgs -join ' ')"
+$quotedArgs = ($wizardArgs | ForEach-Object { Quote-BashArg $_ }) -join ' '
+wsl bash -lc "python3 $(Quote-BashArg $wizardWsl) $quotedArgs"
 
 Step "Create Windows launcher"
 $bin = Join-Path $env:USERPROFILE ".hermes\bin"

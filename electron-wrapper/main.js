@@ -59,30 +59,35 @@ function startExistingRuntime(){
   return true;
 }
 function quoteForShell(s){ return `'${String(s).replace(/'/g, `'\\''`)}'`; }
+function quoteForCmd(s){ return `"${String(s).replace(/"/g, '""')}"`; }
 function runSetup(){
   const root = installerRoot();
   const isWin = process.platform === 'win32';
   const script = isWin ? path.join(root, 'install-windows.ps1') : path.join(root, 'install-macos.sh');
   if(!fs.existsSync(script)){
     dialog.showErrorBox('Installer missing', script);
-    return false;
+    return {started:false, error:'installer_missing', script};
   }
   if(isWin){
-    child = spawn('powershell.exe', ['-NoExit','-ExecutionPolicy','Bypass','-File',script,'-Port',port], {detached:true, stdio:'ignore'});
+    // Electron GUI apps on Windows do not have a parent console. Use `cmd start`
+    // so the PowerShell setup wizard is always visible instead of looking like
+    // the button did nothing while an interactive installer waits in the dark.
+    const cmd = `start "Hermes CEO Console Setup" powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File ${quoteForCmd(script)} -Port ${quoteForCmd(port)}`;
+    child = spawn('cmd.exe', ['/d', '/s', '/c', cmd], {detached:true, stdio:'ignore', windowsHide:false});
     child.unref();
-    return true;
+    return {started:true, mode:'windows-visible-powershell', script};
   }
   if(process.platform === 'darwin'){
     const command = `/bin/bash ${quoteForShell(script)} --port ${quoteForShell(port)}`;
     const osa = `tell application "Terminal"\nactivate\ndo script ${JSON.stringify(command)}\nend tell`;
     child = spawn('/usr/bin/osascript', ['-e', osa], {detached:true, stdio:'ignore'});
     child.unref();
-    return true;
+    return {started:true, mode:'mac-terminal', script};
   }
   const logFd = ensureLogFd();
   child = spawn('/bin/bash', [script, '--port', port], {stdio:['ignore', logFd, logFd], detached:true});
   child.unref();
-  return true;
+  return {started:true, mode:'background-bash', script, logPath:logPath()};
 }
 async function route(){
   if(await health()){
@@ -108,7 +113,7 @@ ipcMain.handle('runtime-status', async () => ({healthy: await health(), runtimeE
 ipcMain.handle('open-webui', async () => { await shell.openExternal(webUrl); return true; });
 ipcMain.handle('retry', async () => { await route(); return true; });
 ipcMain.handle('start-existing', async () => { const started = startExistingRuntime(); return {started, healthy: await waitForHealth(35)}; });
-ipcMain.handle('run-setup', async () => ({started: runSetup()}));
+ipcMain.handle('run-setup', async () => runSetup());
 ipcMain.handle('open-logs', async () => {
   const p = logPath();
   if(fs.existsSync(p)) await shell.openPath(p); else dialog.showMessageBox({message:'Log file not found yet', detail:p});
