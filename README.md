@@ -80,11 +80,23 @@ http://127.0.0.1:8788
 
 1. Release에서 `Hermes CEO Console Setup *.exe` 다운로드
 2. 설치 실행
-3. 앱에서 `처음 설치 / Setup Wizard`를 누르면 별도 PowerShell 창이 열립니다.
+3. 앱에서 `처음 설치 / Setup Wizard`를 누르면 별도 CMD/PowerShell 창이 열립니다.
 4. WSL2가 없으면 안내에 따라 설치
 5. PowerShell Setup Wizard에서 Hermes, Codex, Telegram, Paperclip 설정
 
 주의: Setup Wizard는 Codex login, Telegram token, Paperclip 값처럼 사용자가 직접 입력해야 하는 단계가 있으므로 앱 내부의 숨은 백그라운드가 아니라 눈에 보이는 명령 프롬프트/PowerShell 창에서 진행됩니다. 버튼을 눌렀는데 화면이 바뀌지 않으면 Windows 작업표시줄의 새 창이나 보안 경고 창을 먼저 확인하세요. 그래도 아무 창이 열리지 않으면 앱 화면에 표시되는 `run-hermes-ceo-console-setup.cmd` 파일 경로를 직접 더블클릭하세요. 예전 빌드에서 `Hermes CEO Console Setup을 찾을 수 없습니다` 오류가 뜬 경우 최신 EXE를 다시 다운로드해 설치하세요.
+
+CMD/PowerShell 창이 열리면 이렇게 진행하세요.
+
+1. 창을 닫지 마세요. 설치 마법사가 끝났다고 안내할 때까지 그대로 둡니다.
+2. Windows SmartScreen, 보안 경고, 권한 요청이 나오면 `실행`, `허용`, 또는 `추가 정보 > 실행`을 선택합니다.
+3. WSL2 또는 Ubuntu 설치가 필요하다고 나오면 화면 안내대로 진행합니다. Windows 재시작을 요구하면 재시작한 뒤 Hermes CEO Console을 다시 열고 `처음 설치 / Setup Wizard`를 다시 누릅니다.
+4. Ubuntu가 처음 열리면 Ubuntu 사용자 이름과 비밀번호를 한 번 만듭니다. 입력 중 비밀번호가 화면에 보이지 않아도 정상입니다.
+5. Hermes 설치/업데이트가 진행되면 완료될 때까지 기다립니다.
+6. Codex login이 나오면 브라우저 또는 device code 안내에 따라 로그인합니다. 지금 하지 않을 경우 건너뛰고 나중에 설정할 수 있습니다.
+7. Telegram bot token, Paperclip URL/company/token, model provider key 같은 선택 설정이 나오면 보유한 값만 입력합니다. 모르면 Enter 또는 skip 안내를 따라 나중에 설정합니다.
+8. 완료 메시지가 나오면 Hermes CEO Console 앱으로 돌아가 `다시 확인`을 누릅니다. 정상 설치되면 WebUI가 `http://127.0.0.1:8788`로 열립니다.
+9. 오류가 나오면 CMD/PowerShell 창을 닫지 말고 마지막 오류 줄과 `%USERPROFILE%\.hermes\logs\hermes-ceo-console.log` 로그 경로를 확인합니다.
 
 ### 방법 B: PowerShell script pack
 
