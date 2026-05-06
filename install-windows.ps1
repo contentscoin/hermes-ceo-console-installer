@@ -1,7 +1,7 @@
 param(
   [switch]$Yes,
   [int]$Port = 8788,
-  [string]$RepoUrl = "https://github.com/contentscoin/hermes-for-web-ceo-console.git",
+  [string]$RepoUrl = "https://github.com/contentscoin/hermes-for-web.git",
   [switch]$NoStart,
   [switch]$SkipCodex,
   [switch]$SkipTelegram,

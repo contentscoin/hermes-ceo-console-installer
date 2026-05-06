@@ -7,12 +7,13 @@ function setStatus(s){ $('status').textContent = s; }
 function setMeta(){ $('meta').textContent = `WebUI: http://127.0.0.1:${port}\nInstall dir: ${dir}\nLog: ~/.hermes/logs/hermes-ceo-console.log`; }
 const setupGuide = [
   'CMD/PowerShell 창이 열리면:',
-  '1. SmartScreen 또는 권한 요청이 나오면 실행/허용을 선택하세요.',
-  '2. WSL2/Ubuntu 설치가 필요하다고 나오면 안내대로 설치하고, 재시작 또는 Ubuntu 첫 실행을 완료하세요.',
-  '3. Ubuntu 첫 실행 시에는 Ubuntu 사용자 이름과 비밀번호를 한 번 만들어야 합니다.',
-  '4. Hermes, Codex, Telegram, Paperclip 질문이 나오면 순서대로 답하세요. 선택 항목은 나중에 설정해도 됩니다.',
-  '5. 완료 메시지가 나오면 이 앱으로 돌아와 “다시 확인”을 누르세요.',
-  '6. 오류가 보이면 CMD 창을 닫지 말고 마지막 오류 줄과 로그 경로를 확인하세요.',
+  '1. 이 창은 FMG 제공 WebUI를 설치/업데이트하고 바로 실행하는 quick setup입니다.',
+  '2. SmartScreen 또는 권한 요청이 나오면 실행/허용을 선택하세요.',
+  '3. WSL2/Ubuntu 설치가 필요하다고 나오면 안내대로 설치하고, 재시작 또는 Ubuntu 첫 실행을 완료하세요.',
+  '4. Ubuntu 첫 실행 시에는 Ubuntu 사용자 이름과 비밀번호를 한 번 만들어야 합니다.',
+  '5. Codex/Telegram/Paperclip 설정 질문은 여기서 기본적으로 건너뜁니다. WebUI가 열린 뒤 설정에서 진행하세요.',
+  '6. 완료 메시지가 나오면 이 앱으로 돌아와 “다시 확인”을 누르세요.',
+  '7. 오류가 보이면 CMD 창을 닫지 말고 마지막 오류 줄과 로그 경로를 확인하세요.',
 ].join('\n');
 function api(){
   if(window.hermesDesktop) return window.hermesDesktop;
@@ -44,7 +45,7 @@ function applyMode(){
     $('start').classList.remove('secondary');
   } else if(mode === 'first-run'){
     $('title').textContent = '처음 설치 / 초기 설정 필요';
-    $('lead').innerHTML = `이 장비에는 아직 Hermes CEO Console 런타임이 감지되지 않았습니다. Setup Wizard를 열어 Hermes Agent, WebUI, Codex, Telegram, Paperclip 설정을 순서대로 진행하세요.`;
+    $('lead').innerHTML = `이 장비에는 아직 Hermes CEO Console 런타임이 감지되지 않았습니다. Setup Wizard를 열면 FMG 제공 WebUI를 설치/업데이트하고 바로 실행합니다. Codex, Telegram, Paperclip 같은 상세 설정은 WebUI가 열린 뒤 진행합니다.`;
     setStatus(`“처음 설치 / Setup Wizard”를 누르면 CMD/PowerShell 창이 열립니다.\n\n${setupGuide}`);
     $('start').classList.add('secondary');
   } else {

@@ -9,8 +9,8 @@ from pathlib import Path
 HOME = Path.home()
 HERMES = HOME / ".hermes"
 ENV = HERMES / ".env"
-DEFAULT_REPO = "https://github.com/contentscoin/hermes-for-web-ceo-console.git"
-FALLBACK_REPO = "https://github.com/reallygood83/hermes-for-web.git"
+DEFAULT_REPO = "https://github.com/contentscoin/hermes-for-web.git"
+FALLBACK_REPO = DEFAULT_REPO
 DEFAULT_INSTALL_DIR = HERMES / "webui" / "workspace" / "hermes-for-web"
 
 
@@ -128,14 +128,32 @@ def install_hermes_if_missing(yes, skip_update=False):
 def clone_or_update(repo, install_dir):
     install_dir.parent.mkdir(parents=True, exist_ok=True)
     if (install_dir/'.git').exists():
-        print(f'Updating WebUI: {install_dir}')
-        rc, out = run(['git','-C',str(install_dir),'pull','--ff-only'])
+        print(f'Updating FMG WebUI: {install_dir}')
+        rc, out = run(['git','-C',str(install_dir),'remote','get-url','origin'])
+        current_remote = out.strip() if rc == 0 else ''
+        if current_remote != repo:
+            print(f'Switching WebUI source to FMG repo: {repo}')
+            rc, out = run(['git','-C',str(install_dir),'remote','set-url','origin',repo])
+            if rc != 0:
+                print(out)
+                raise SystemExit('Could not update WebUI git remote')
+        rc, out = run(['git','-C',str(install_dir),'fetch','origin','main'])
         print(out)
+        if rc != 0:
+            raise SystemExit('WebUI fetch failed')
+        rc, out = run(['git','-C',str(install_dir),'checkout','main'])
+        print(out)
+        if rc != 0:
+            raise SystemExit('WebUI checkout failed')
+        rc, out = run(['git','-C',str(install_dir),'reset','--hard','origin/main'])
+        print(out)
+        if rc != 0:
+            raise SystemExit('WebUI update failed')
     else:
-        print(f'Cloning WebUI: {repo} -> {install_dir}')
+        print(f'Cloning FMG WebUI: {repo} -> {install_dir}')
         rc, out = run(['git','clone',repo,str(install_dir)])
         if rc != 0 and repo != FALLBACK_REPO:
-            print('Primary repo clone failed; trying fallback public repo.')
+            print('Primary repo clone failed; trying fallback repo.')
             rc, out = run(['git','clone',FALLBACK_REPO,str(install_dir)])
         print(out)
         if rc != 0:

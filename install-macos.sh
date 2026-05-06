@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 PORT=8788
-REPO="https://github.com/contentscoin/hermes-for-web-ceo-console.git"
+REPO="https://github.com/contentscoin/hermes-for-web.git"
 INSTALL_DIR="$HOME/.hermes/webui/workspace/hermes-for-web"
 YES=0
 NO_START=0
