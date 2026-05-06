@@ -126,6 +126,10 @@ jobs:
             Write-Host "WIN_CERTIFICATE_PFX_BASE64 not set; building unsigned Windows installer."
             exit 0
           }
+          if ([string]::IsNullOrWhiteSpace($env:WIN_CERTIFICATE_PASSWORD)) {
+            Write-Host "WIN_CERTIFICATE_PASSWORD not set; building unsigned Windows installer instead of failing on an unusable PFX."
+            exit 0
+          }
           $certPath = Join-Path $env:RUNNER_TEMP 'windows-code-signing.pfx'
           $cleaned = ($env:WIN_CERTIFICATE_PFX_BASE64 -replace '\\s+', '')
           [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($cleaned))
@@ -152,8 +156,8 @@ jobs:
           if ($null -eq $exe) { throw 'No Windows EXE artifact found.' }
           $sig = Get-AuthenticodeSignature $exe.FullName
           $sig | Format-List
-          if ([string]::IsNullOrWhiteSpace($env:WIN_CERTIFICATE_PFX_BASE64)) {
-            Write-Host "Windows signing secrets are not set; unsigned build verification only."
+          if ([string]::IsNullOrWhiteSpace($env:WIN_CERTIFICATE_PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:WIN_CERTIFICATE_PASSWORD)) {
+            Write-Host "Windows signing secrets are not fully set; unsigned build verification only."
             exit 0
           }
           if ($sig.Status -ne 'Valid') {
