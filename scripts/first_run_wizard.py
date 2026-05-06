@@ -109,9 +109,12 @@ def status(port, install_dir):
     return st
 
 
-def install_hermes_if_missing(yes):
+def install_hermes_if_missing(yes, skip_update=False):
     if which('hermes'):
         print('Hermes CLI: found')
+        if skip_update:
+            print('Hermes update: skipped')
+            return
         run(['hermes','update'], capture=False)
         return
     print('Hermes CLI: missing')
@@ -204,6 +207,7 @@ def main():
     ap.add_argument('--skip-codex', action='store_true')
     ap.add_argument('--skip-telegram', action='store_true')
     ap.add_argument('--skip-paperclip', action='store_true')
+    ap.add_argument('--skip-hermes-update', action='store_true', help='do not run hermes update when Hermes CLI already exists')
     ap.add_argument('--no-start', action='store_true')
     ap.add_argument('--status-json', action='store_true')
     args = ap.parse_args()
@@ -212,7 +216,7 @@ def main():
         print(json.dumps(status(args.port, install_dir), ensure_ascii=False, indent=2))
         return
     print('Hermes CEO Console setup wizard')
-    install_hermes_if_missing(args.yes)
+    install_hermes_if_missing(args.yes, args.skip_hermes_update)
     clone_or_update(args.repo, install_dir)
     configure_integrations(args)
     codex_flow(args.skip_codex, args.yes)
