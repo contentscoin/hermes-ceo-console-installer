@@ -9,6 +9,14 @@ const webUrl = `http://127.0.0.1:${port}`;
 let win = null;
 let child = null;
 
+function appendLog(message){
+  try {
+    const p = logPath();
+    fs.mkdirSync(path.dirname(p), {recursive:true});
+    fs.appendFileSync(p, `[${new Date().toISOString()}] ${message}\n`);
+  } catch (_) {}
+}
+
 function homeDir(){ return app.getPath('home'); }
 function webuiDir(){ return process.env.HERMES_WEBUI_DIR || path.join(homeDir(), '.hermes', 'webui', 'workspace', 'hermes-for-web'); }
 function logPath(){ return path.join(homeDir(), '.hermes', 'logs', 'hermes-ceo-console.log'); }
@@ -60,32 +68,56 @@ function startExistingRuntime(){
 }
 function quoteForShell(s){ return `'${String(s).replace(/'/g, `'\\''`)}'`; }
 function quoteForCmd(s){ return `"${String(s).replace(/"/g, '""')}"`; }
-function quoteForPowerShellSingle(s){ return `'${String(s).replace(/'/g, "''")}'`; }
-function runSetup(){
+function writeWindowsSetupLauncher(script){
+  const dir = path.join(app.getPath('userData'), 'setup-launcher');
+  fs.mkdirSync(dir, {recursive:true});
+  const launcher = path.join(dir, 'run-hermes-ceo-console-setup.cmd');
+  const body = [
+    '@echo off',
+    'setlocal',
+    'title Hermes CEO Console Setup',
+    'echo Hermes CEO Console Setup',
+    'echo.',
+    'echo This window will start the PowerShell setup wizard.',
+    'echo If Windows shows a security prompt, allow it to continue.',
+    'echo.',
+    `powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File ${quoteForCmd(script)} -Port ${quoteForCmd(port)}`,
+    'set EXITCODE=%ERRORLEVEL%',
+    'if not "%EXITCODE%"=="0" (',
+    '  echo.',
+    '  echo Setup command exited with code %EXITCODE%.',
+    '  echo Keep this window open and copy the message if you need support.',
+    '  pause',
+    ')',
+    'endlocal',
+    '',
+  ].join('\r\n');
+  fs.writeFileSync(launcher, body, 'utf8');
+  return launcher;
+}
+async function runSetup(){
   const root = installerRoot();
   const isWin = process.platform === 'win32';
   const script = isWin ? path.join(root, 'install-windows.ps1') : path.join(root, 'install-macos.sh');
+  appendLog(`runSetup requested platform=${process.platform} script=${script}`);
   if(!fs.existsSync(script)){
     dialog.showErrorBox('Installer missing', script);
+    appendLog(`runSetup installer missing script=${script}`);
     return {started:false, error:'installer_missing', script};
   }
   if(isWin){
-    // Electron GUI apps on Windows do not have a parent console. Start a new
-    // visible PowerShell process from PowerShell itself. This avoids `cmd start`
-    // title/path parsing bugs where Windows may try to execute the window title
-    // (for example: "Hermes CEO Console Setup") as a command.
-    const psArgs = [
-      '-NoExit',
-      '-NoProfile',
-      '-ExecutionPolicy', 'Bypass',
-      '-File', script,
-      '-Port', String(port),
-    ];
-    const argList = psArgs.map(quoteForPowerShellSingle).join(',');
-    const command = `Start-Process -FilePath 'powershell.exe' -ArgumentList @(${argList}) -WindowStyle Normal`;
-    child = spawn('powershell.exe', ['-NoProfile','-ExecutionPolicy','Bypass','-Command', command], {detached:true, stdio:'ignore', windowsHide:false});
-    child.unref();
-    return {started:true, mode:'windows-visible-powershell', script};
+    // Use a visible .cmd launcher and ask Windows Shell to open it. In packaged
+    // Electron GUI apps, child_process spawn can silently fail or be hidden by
+    // shell/security policy. Opening a command file gives the user a visible
+    // console window and a concrete file to run manually if needed.
+    const launcher = writeWindowsSetupLauncher(script);
+    appendLog(`runSetup opening launcher=${launcher}`);
+    const openError = await shell.openPath(launcher);
+    if(openError){
+      appendLog(`runSetup shell.openPath failed: ${openError}`);
+      return {started:false, error:'open_launcher_failed', detail:openError, script, launcher};
+    }
+    return {started:true, mode:'windows-cmd-launcher', script, launcher};
   }
   if(process.platform === 'darwin'){
     const command = `/bin/bash ${quoteForShell(script)} --port ${quoteForShell(port)}`;

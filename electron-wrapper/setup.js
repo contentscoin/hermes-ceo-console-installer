@@ -47,10 +47,12 @@ $('setup').onclick = async () => {
   setStatus('Setup Wizard를 터미널로 여는 중입니다. 터미널에서 초기 설정을 완료한 뒤 “다시 확인”을 누르세요.');
   const result = await callDesktop('runSetup', {started:false});
   if(result && result.started){
-    const modeText = result.mode === 'windows-visible-powershell' ? 'PowerShell 창' : '터미널';
-    setStatus(`Setup Wizard를 ${modeText}으로 열었습니다. 새 창이 보이지 않으면 작업표시줄/보안 경고를 확인하세요.\n\nInstaller: ${result.script || '(unknown)'}\n\n설치가 끝나면 “다시 확인”을 누르세요.`);
+    const modeText = result.mode === 'windows-cmd-launcher' ? '명령 프롬프트 창' : (result.mode === 'windows-visible-powershell' ? 'PowerShell 창' : '터미널');
+    const manual = result.launcher ? `\n\n새 창이 보이지 않으면 아래 파일을 직접 더블클릭하세요:\n${result.launcher}` : '';
+    setStatus(`Setup Wizard를 ${modeText}으로 열었습니다. 새 창이 보이지 않으면 작업표시줄/보안 경고를 확인하세요.\n\nInstaller: ${result.script || '(unknown)'}${manual}\n\n설치가 끝나면 “다시 확인”을 누르세요.`);
   } else {
-    setStatus(`Setup Wizard를 시작하지 못했습니다.\n원인: ${(result && result.error) || 'unknown'}\nInstaller: ${(result && result.script) || '(unknown)'}\n로그 또는 설치파일 위치를 확인하세요.`);
+    const manual = result && result.launcher ? `\n직접 실행 파일: ${result.launcher}` : '';
+    setStatus(`Setup Wizard를 시작하지 못했습니다.\n원인: ${(result && result.error) || 'unknown'}${result && result.detail ? `\n상세: ${result.detail}` : ''}\nInstaller: ${(result && result.script) || '(unknown)'}${manual}\n로그 또는 설치파일 위치를 확인하세요.`);
   }
 };
 $('start').onclick = async () => {
