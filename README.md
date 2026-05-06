@@ -84,7 +84,7 @@ http://127.0.0.1:8788
 4. WSL2가 없으면 안내에 따라 설치
 5. PowerShell Setup Wizard에서 Hermes, Codex, Telegram, Paperclip 설정
 
-주의: Setup Wizard는 Codex login, Telegram token, Paperclip 값처럼 사용자가 직접 입력해야 하는 단계가 있으므로 앱 내부의 숨은 백그라운드가 아니라 눈에 보이는 PowerShell 창에서 진행됩니다. 버튼을 눌렀는데 화면이 바뀌지 않으면 Windows 작업표시줄의 새 PowerShell 창이나 보안 경고 창을 먼저 확인하세요.
+주의: Setup Wizard는 Codex login, Telegram token, Paperclip 값처럼 사용자가 직접 입력해야 하는 단계가 있으므로 앱 내부의 숨은 백그라운드가 아니라 눈에 보이는 PowerShell 창에서 진행됩니다. 버튼을 눌렀는데 화면이 바뀌지 않으면 Windows 작업표시줄의 새 PowerShell 창이나 보안 경고 창을 먼저 확인하세요. 예전 빌드에서 `Hermes CEO Console Setup을 찾을 수 없습니다` 오류가 뜬 경우 최신 EXE를 다시 다운로드해 설치하세요.
 
 ### 방법 B: PowerShell script pack
 

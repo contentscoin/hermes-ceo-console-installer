@@ -60,6 +60,7 @@ function startExistingRuntime(){
 }
 function quoteForShell(s){ return `'${String(s).replace(/'/g, `'\\''`)}'`; }
 function quoteForCmd(s){ return `"${String(s).replace(/"/g, '""')}"`; }
+function quoteForPowerShellSingle(s){ return `'${String(s).replace(/'/g, "''")}'`; }
 function runSetup(){
   const root = installerRoot();
   const isWin = process.platform === 'win32';
@@ -69,11 +70,20 @@ function runSetup(){
     return {started:false, error:'installer_missing', script};
   }
   if(isWin){
-    // Electron GUI apps on Windows do not have a parent console. Use `cmd start`
-    // so the PowerShell setup wizard is always visible instead of looking like
-    // the button did nothing while an interactive installer waits in the dark.
-    const cmd = `start "Hermes CEO Console Setup" powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File ${quoteForCmd(script)} -Port ${quoteForCmd(port)}`;
-    child = spawn('cmd.exe', ['/d', '/s', '/c', cmd], {detached:true, stdio:'ignore', windowsHide:false});
+    // Electron GUI apps on Windows do not have a parent console. Start a new
+    // visible PowerShell process from PowerShell itself. This avoids `cmd start`
+    // title/path parsing bugs where Windows may try to execute the window title
+    // (for example: "Hermes CEO Console Setup") as a command.
+    const psArgs = [
+      '-NoExit',
+      '-NoProfile',
+      '-ExecutionPolicy', 'Bypass',
+      '-File', script,
+      '-Port', String(port),
+    ];
+    const argList = psArgs.map(quoteForPowerShellSingle).join(',');
+    const command = `Start-Process -FilePath 'powershell.exe' -ArgumentList @(${argList}) -WindowStyle Normal`;
+    child = spawn('powershell.exe', ['-NoProfile','-ExecutionPolicy','Bypass','-Command', command], {detached:true, stdio:'ignore', windowsHide:false});
     child.unref();
     return {started:true, mode:'windows-visible-powershell', script};
   }
