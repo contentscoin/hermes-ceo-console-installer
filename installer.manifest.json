@@ -10,6 +10,7 @@
   "integrations": {
     "telegram": {"mode": "user-token", "autoSend": false},
     "paperclip": {"mode": "user-config", "autoReflect": false},
+    "paperclipWorkflowControl": {"mode": "local-script", "default": "read-only", "mutationsRequireConfirmation": true},
     "opencrab": {"mode": "user-config", "autoIngest": false, "endpointRedacted": true},
     "codex": {"mode": "oauth-device-login", "silentLogin": false}
   }

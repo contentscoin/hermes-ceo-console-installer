@@ -9,6 +9,7 @@
   "features": {
     "memoryCandidateInbox": true,
     "paperclipDecisionIntelligence": true,
+    "paperclipWorkflowControl": true,
     "sharenoteTelegramPack": true,
     "autoResearchPack": true,
     "opencrabOntologyEvidence": true

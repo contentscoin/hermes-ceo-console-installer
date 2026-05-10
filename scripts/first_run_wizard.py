@@ -141,6 +141,7 @@ def status(port, install_dir):
         'telegram': 'configured' if env.get('TELEGRAM_BOT_TOKEN') else 'missing',
         'paperclip': 'configured' if env.get('PAPERCLIP_BASE_URL') and env.get('PAPERCLIP_DEFAULT_COMPANY') else 'missing',
         'paperclip_web_url': env.get('PAPERCLIP_WEB_URL') or 'http://127.0.0.1:3100',
+        'paperclip_workflow_control': 'available' if (Path(__file__).resolve().parent / 'paperclip_workflow_control.py').exists() else 'missing',
         'opencrab': 'configured' if opencrab_configured() else 'missing',
         'codex': 'installed_login_unverified' if codex_ok else 'missing',
         'secrets_redacted': True,

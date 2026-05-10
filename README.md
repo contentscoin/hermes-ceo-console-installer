@@ -175,6 +175,47 @@ Telegram bot token은 BotFather에서 생성해야 합니다.
 - Paperclip issue/comment/status update는 자동 실행하지 않습니다.
 - Decision Report / dry-run preview 후 명시 승인 시에만 반영해야 합니다.
 
+## Paperclip Workflow Control Pack
+
+installer에는 Paperclip live workflow가 실제로 돌고 있는지 확인하고, 필요한 경우 routine을 조정할 수 있는 로컬 스크립트가 포함됩니다.
+
+기본 진단은 read-only입니다.
+
+```bash
+python3 scripts/paperclip_workflow_control.py status
+python3 scripts/paperclip_workflow_control.py --format json status --company FMG
+```
+
+진단 항목:
+
+- Paperclip `/api/health`
+- company/project/routine/live-run 수
+- routine status 요약(active/paused/archived)
+- scheduler heartbeat 요약
+- duplicate/similar routine title 감지
+- installed plugin/tool 목록
+- “서버는 켜져 있으나 실제 workflow 실행은 idle” 같은 운영 경고
+
+조정 기능은 dry-run이 기본입니다. 실제 변경은 반드시 `--apply --confirm APPLY`를 같이 넣어야 합니다.
+
+```bash
+# dry-run only
+python3 scripts/paperclip_workflow_control.py pause-routine ROUTINE_ID
+python3 scripts/paperclip_workflow_control.py resume-routine ROUTINE_ID
+python3 scripts/paperclip_workflow_control.py run-routine ROUTINE_ID
+python3 scripts/paperclip_workflow_control.py update-trigger TRIGGER_ID --cron "0 9 * * *" --timezone Asia/Seoul
+
+# 실제 반영
+python3 scripts/paperclip_workflow_control.py resume-routine ROUTINE_ID --apply --confirm APPLY
+```
+
+원칙:
+
+- read-only status는 승인 없이 실행할 수 있습니다.
+- pause/resume/manual run/trigger update는 dry-run preview 후 명시 승인으로만 실행합니다.
+- raw DB를 직접 수정하지 않고 Paperclip API를 통해 조정합니다.
+- Telegram 논의 내용은 자동으로 Paperclip에 반영하지 않습니다.
+
 ## OpenCrab setup
 
 OpenCrab은 Hermes/Paperclip 의사결정에 ontology evidence를 붙이기 위한 선택 통합입니다. endpoint URL에 key가 포함될 수 있으므로 installer는 값을 다시 출력하지 않고, 로컬 `~/.hermes/config.yaml`에만 저장합니다.
