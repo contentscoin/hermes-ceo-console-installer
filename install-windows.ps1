@@ -6,6 +6,7 @@ param(
   [switch]$SkipCodex,
   [switch]$SkipTelegram,
   [switch]$SkipPaperclip,
+  [switch]$SkipOpenCrab,
   [switch]$SkipHermesUpdate,
   [switch]$Help
 )
@@ -22,6 +23,7 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
   -SkipCodex        skip Codex login step
   -SkipTelegram     skip Telegram token prompt
   -SkipPaperclip    skip Paperclip prompt
+  -SkipOpenCrab     skip OpenCrab MCP prompt
   -SkipHermesUpdate do not run hermes update when Hermes CLI already exists
 "@
   exit 0
@@ -75,6 +77,7 @@ if($NoStart){ $wizardArgs += "--no-start" }
 if($SkipCodex){ $wizardArgs += "--skip-codex" }
 if($SkipTelegram){ $wizardArgs += "--skip-telegram" }
 if($SkipPaperclip){ $wizardArgs += "--skip-paperclip" }
+if($SkipOpenCrab){ $wizardArgs += "--skip-opencrab" }
 if($SkipHermesUpdate){ $wizardArgs += "--skip-hermes-update" }
 $wizardWin = Join-Path $ScriptDir "scripts\first_run_wizard.py"
 $wizardWsl = (wsl wslpath -a ($wizardWin -replace '\\','/')).Trim()

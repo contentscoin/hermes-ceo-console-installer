@@ -10,7 +10,8 @@
     "memoryCandidateInbox": true,
     "paperclipDecisionIntelligence": true,
     "sharenoteTelegramPack": true,
-    "autoResearchPack": true
+    "autoResearchPack": true,
+    "opencrabOntologyEvidence": true
   },
   "secretsIncluded": false
 }

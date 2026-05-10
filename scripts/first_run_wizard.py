@@ -85,6 +85,44 @@ def health(port):
         return False
 
 
+def hermes_config_path():
+    return HERMES / "config.yaml"
+
+
+def opencrab_configured():
+    cfg = hermes_config_path()
+    if not cfg.exists():
+        return False
+    text = cfg.read_text(errors='ignore')
+    return 'mcp_servers:' in text and 'opencrab:' in text
+
+
+def configure_opencrab_mcp(args):
+    if args.skip_opencrab:
+        return
+    print('OpenCrab MCP: optional ontology evidence tools for Hermes/Paperclip. The endpoint may contain a key and will not be printed back.')
+    url = '' if args.yes else ask('OpenCrab MCP endpoint URL (blank to configure later)', '', secret=True)
+    if not url:
+        return
+    cfg = hermes_config_path()
+    HERMES.mkdir(parents=True, exist_ok=True)
+    if cfg.exists():
+        text = cfg.read_text(errors='ignore')
+        if 'mcp_servers:' in text and 'opencrab:' in text:
+            print('OpenCrab MCP already appears in Hermes config; leaving existing local value unchanged.')
+            return
+        backup = cfg.with_suffix(cfg.suffix + f'.bak-{int(time.time())}')
+        shutil.copy2(cfg, backup)
+    else:
+        text = ''
+    block = '\n' if text and not text.endswith('\n') else ''
+    if 'mcp_servers:' not in text:
+        block += 'mcp_servers:\n'
+    block += '  opencrab:\n    url: "' + url.replace('"', '\"') + '"\n    timeout: 180\n    connect_timeout: 60\n'
+    cfg.write_text(text + block)
+    print('Configured OpenCrab MCP in Hermes config (endpoint redacted). Restart Hermes gateway/agents for tool discovery.')
+
+
 def status(port, install_dir):
     env = read_env()
     codex_ok = bool(which('codex'))
@@ -103,6 +141,7 @@ def status(port, install_dir):
         'telegram': 'configured' if env.get('TELEGRAM_BOT_TOKEN') else 'missing',
         'paperclip': 'configured' if env.get('PAPERCLIP_BASE_URL') and env.get('PAPERCLIP_DEFAULT_COMPANY') else 'missing',
         'paperclip_web_url': env.get('PAPERCLIP_WEB_URL') or 'http://127.0.0.1:3100',
+        'opencrab': 'configured' if opencrab_configured() else 'missing',
         'codex': 'installed_login_unverified' if codex_ok else 'missing',
         'secrets_redacted': True,
     }
@@ -225,6 +264,7 @@ def main():
     ap.add_argument('--skip-codex', action='store_true')
     ap.add_argument('--skip-telegram', action='store_true')
     ap.add_argument('--skip-paperclip', action='store_true')
+    ap.add_argument('--skip-opencrab', action='store_true', help='skip OpenCrab MCP endpoint prompt')
     ap.add_argument('--skip-hermes-update', action='store_true', help='do not run hermes update when Hermes CLI already exists')
     ap.add_argument('--no-start', action='store_true')
     ap.add_argument('--status-json', action='store_true')
@@ -237,6 +277,7 @@ def main():
     install_hermes_if_missing(args.yes, args.skip_hermes_update)
     clone_or_update(args.repo, install_dir)
     configure_integrations(args)
+    configure_opencrab_mcp(args)
     codex_flow(args.skip_codex, args.yes)
     if which('hermes'):
         run(['hermes','doctor'], capture=False)

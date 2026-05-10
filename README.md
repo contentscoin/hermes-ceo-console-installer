@@ -61,7 +61,7 @@ chmod +x install-macos.sh scripts/first_run_wizard.py
 비밀값 입력 없이 기본 설치만 먼저 하려면:
 
 ```bash
-./install-macos.sh --yes --skip-telegram --skip-paperclip --skip-codex
+./install-macos.sh --yes --skip-telegram --skip-paperclip --skip-opencrab --skip-codex
 ```
 
 설치 후 URL:
@@ -104,7 +104,7 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
 Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
 cd .\hermes-ceo-console-installer
-powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipPaperclip -SkipHermesUpdate
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipPaperclip -SkipOpenCrab -SkipHermesUpdate
 ```
 
 WSL2가 없다면 관리자 PowerShell에서 먼저:
@@ -174,6 +174,25 @@ Telegram bot token은 BotFather에서 생성해야 합니다.
 - 설치 프로그램은 Paperclip 연결 정보를 설정/점검할 수 있습니다.
 - Paperclip issue/comment/status update는 자동 실행하지 않습니다.
 - Decision Report / dry-run preview 후 명시 승인 시에만 반영해야 합니다.
+
+## OpenCrab setup
+
+OpenCrab은 Hermes/Paperclip 의사결정에 ontology evidence를 붙이기 위한 선택 통합입니다. endpoint URL에 key가 포함될 수 있으므로 installer는 값을 다시 출력하지 않고, 로컬 `~/.hermes/config.yaml`에만 저장합니다.
+
+설치 중 입력하거나 나중에 직접 설정할 수 있습니다.
+
+```yaml
+mcp_servers:
+  opencrab:
+    url: "https://opencrab.sh/api/mcp/[REDACTED]"
+    timeout: 180
+    connect_timeout: 60
+```
+
+원칙:
+- OpenCrab endpoint/key는 repo, README, Paperclip comment에 저장하지 않습니다.
+- Hermes gateway/agent 재시작 후 MCP tool discovery가 적용됩니다.
+- OpenCrab ingest/mutation은 기본 비활성으로 유지하고, 별도 승인 없이는 자동 실행하지 않습니다.
 
 ## Hermes setup
 

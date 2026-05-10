@@ -8,6 +8,7 @@ NO_START=0
 SKIP_CODEX=0
 SKIP_TELEGRAM=0
 SKIP_PAPERCLIP=0
+SKIP_OPENCRAB=0
 SKIP_HERMES_UPDATE=0
 APP_NAME="Hermes CEO Console"
 
@@ -22,6 +23,7 @@ Usage: ./install-macos.sh [options]
   --skip-codex          skip Codex login step
   --skip-telegram       skip Telegram token prompt
   --skip-paperclip      skip Paperclip prompt
+  --skip-opencrab       skip OpenCrab MCP prompt
   --skip-hermes-update  do not run hermes update when Hermes CLI already exists
   --no-start            install only; do not start WebUI
   --help                show this help
@@ -37,6 +39,7 @@ while [[ $# -gt 0 ]]; do
     --skip-codex) SKIP_CODEX=1; shift;;
     --skip-telegram) SKIP_TELEGRAM=1; shift;;
     --skip-paperclip) SKIP_PAPERCLIP=1; shift;;
+    --skip-opencrab) SKIP_OPENCRAB=1; shift;;
     --skip-hermes-update) SKIP_HERMES_UPDATE=1; shift;;
     --no-start) NO_START=1; shift;;
     --help|-h) usage; exit 0;;
@@ -69,6 +72,7 @@ args=("$WIZARD" --port "$PORT" --repo "$REPO" --install-dir "$INSTALL_DIR")
 [[ "$SKIP_CODEX" == 1 ]] && args+=(--skip-codex)
 [[ "$SKIP_TELEGRAM" == 1 ]] && args+=(--skip-telegram)
 [[ "$SKIP_PAPERCLIP" == 1 ]] && args+=(--skip-paperclip)
+[[ "$SKIP_OPENCRAB" == 1 ]] && args+=(--skip-opencrab)
 [[ "$SKIP_HERMES_UPDATE" == 1 ]] && args+=(--skip-hermes-update)
 python3 "${args[@]}"
 
