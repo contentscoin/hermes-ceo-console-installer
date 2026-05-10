@@ -220,6 +220,61 @@ def find_duplicates(routines: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return sorted(out, key=lambda x: x["count"], reverse=True)
 
 
+def infer_node_kind(node: Dict[str, Any]) -> str:
+    for key in ["kind", "type", "nodeType"]:
+        value = node.get(key)
+        if value:
+            return str(value)
+    node_id = str(node.get("id") or "")
+    if ":" in node_id:
+        return node_id.split(":", 1)[0]
+    return "unknown"
+
+
+def summarize_issue_workflow(identifier: str, workflow: Dict[str, Any], base_url: str) -> Dict[str, Any]:
+    nodes = workflow.get("nodes") if isinstance(workflow, dict) else None
+    edges = workflow.get("edges") if isinstance(workflow, dict) else None
+    if not isinstance(nodes, list):
+        nodes = []
+    if not isinstance(edges, list):
+        edges = []
+    serialized = json.dumps(workflow, ensure_ascii=False, sort_keys=True)
+    unsafe_raw_fields = []
+    for field in ["message", "payload", "data"]:
+        if f'"{field}"' in serialized:
+            unsafe_raw_fields.append(field)
+    node_kinds = status_bucket(({"kind": infer_node_kind(n)} for n in nodes), "kind") if nodes else {}
+    node_status = status_bucket(nodes, "status") if nodes else {}
+    return {
+        "identifier": identifier,
+        "baseUrl": base_url.rstrip("/"),
+        "nodeCount": len(nodes),
+        "edgeCount": len(edges),
+        "nodeKinds": node_kinds,
+        "nodeStatus": node_status,
+        "hasDag": bool(nodes and edges),
+        "usesMetadata": '"metadata"' in serialized,
+        "unsafeRawFieldsDetected": unsafe_raw_fields,
+        "uiUrl": f"{base_url.rstrip('/')}/{identifier.split('-', 1)[0]}/issues/{identifier}" if "-" in identifier else None,
+        "sampleNodes": [{k: ({**n, "kind": infer_node_kind(n)}).get(k) for k in ["id", "kind", "status", "title"] if ({**n, "kind": infer_node_kind(n)}).get(k) is not None} for n in nodes[:8]],
+        "sampleEdges": [{k: e.get(k) for k in ["id", "source", "target", "label"] if k in e} for e in edges[:8]],
+        "diagnosis": build_issue_workflow_diagnosis(nodes, edges, unsafe_raw_fields),
+    }
+
+
+def build_issue_workflow_diagnosis(nodes: List[Dict[str, Any]], edges: List[Dict[str, Any]], unsafe_raw_fields: List[str]) -> List[str]:
+    notes = []
+    if not nodes:
+        notes.append("No workflow nodes returned; Live Workflow DAG will appear empty for this issue.")
+    if nodes and not edges:
+        notes.append("Workflow nodes returned without edges; DAG may render as disconnected cards.")
+    if unsafe_raw_fields:
+        notes.append("Raw workflow fields detected in serialized response: " + ", ".join(unsafe_raw_fields) + ". Verify API sanitization before release.")
+    if nodes and edges and not unsafe_raw_fields:
+        notes.append("Issue workflow DAG API is available and appears sanitized for UI rendering.")
+    return notes
+
+
 def build_diagnosis(totals: Dict[str, Any], company_rows: List[Dict[str, Any]], heartbeats: List[Dict[str, Any]]) -> List[str]:
     notes = []
     if totals["liveRuns"] == 0:
@@ -255,6 +310,20 @@ def print_output(data: Any, fmt: str) -> None:
             print(f"Plugins: {json.dumps(data['plugins'], ensure_ascii=False)}")
             print(f"Plugin tools: {', '.join(data.get('pluginTools') or []) or 'none'}")
         return
+    if isinstance(data, dict) and "nodeCount" in data and "edgeCount" in data:
+        print(f"Paperclip Issue Workflow DAG — {data['identifier']}")
+        print(f"Base URL: {data['baseUrl']}")
+        if data.get("uiUrl"):
+            print(f"UI URL: {data['uiUrl']}")
+        print(f"DAG: nodes={data['nodeCount']} edges={data['edgeCount']} hasDag={data['hasDag']} usesMetadata={data['usesMetadata']}")
+        print(f"Node kinds: {json.dumps(data.get('nodeKinds', {}), ensure_ascii=False, sort_keys=True)}")
+        print(f"Node status: {json.dumps(data.get('nodeStatus', {}), ensure_ascii=False, sort_keys=True)}")
+        if data.get("unsafeRawFieldsDetected"):
+            print(f"Unsafe raw fields detected: {', '.join(data['unsafeRawFieldsDetected'])}")
+        print("Diagnosis:")
+        for note in data.get("diagnosis", []):
+            print(f"- {note}")
+        return
     print(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
 
 
@@ -272,6 +341,13 @@ def command_status(args: argparse.Namespace) -> None:
     client = make_client(args)
     data = collect_snapshot(client, args.company, include_plugins=not args.no_plugins)
     print_output(data, args.format)
+
+
+def command_issue_workflow(args: argparse.Namespace) -> None:
+    client = make_client(args)
+    identifier = args.identifier.strip()
+    workflow = client.get(f"/issues/{urllib.parse.quote(identifier)}/workflow")
+    print_output(summarize_issue_workflow(identifier, workflow, client.base_url), args.format)
 
 
 def command_pause(args: argparse.Namespace) -> None:
@@ -336,6 +412,10 @@ def build_parser() -> argparse.ArgumentParser:
     status.add_argument("--company", default=None, help="Company name, issue prefix, or id")
     status.add_argument("--no-plugins", action="store_true")
     status.set_defaults(func=command_status)
+
+    issue_workflow = sub.add_parser("issue-workflow", help="Read-only Issue Detail Live Workflow DAG diagnostic")
+    issue_workflow.add_argument("identifier", help="Issue identifier, e.g. WORK-2371")
+    issue_workflow.set_defaults(func=command_issue_workflow)
 
     for name, func, help_text in [
         ("pause-routine", command_pause, "Pause a routine; dry-run unless --apply --confirm APPLY"),

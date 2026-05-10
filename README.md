@@ -6,24 +6,24 @@ Hermes CEO Console Installer Pack은 Hermes Agent, Hermes WebUI, Telegram bot �
 
 ## 다운로드
 
-현재 alpha release는 `v0.1.0-alpha.1`입니다. GitHub의 `/releases/download/` 주소는 폴더 페이지가 아니므로, 반드시 아래처럼 `태그명/파일명`까지 포함된 전체 링크로 다운로드하세요.
+현재 alpha release는 `v0.1.0-alpha.2`입니다. GitHub의 `/releases/download/` 주소는 폴더 페이지가 아니므로, 반드시 아래처럼 `태그명/파일명`까지 포함된 전체 링크로 다운로드하세요.
 
 Release 페이지:
-https://github.com/contentscoin/hermes-ceo-console-installer/releases/tag/v0.1.0-alpha.1
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/tag/v0.1.0-alpha.2
 
 직접 다운로드:
 
-- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-macos-arm64.dmg
-- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-macos-arm64.dmg.sha256
-- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/Hermes.CEO.Console.Setup.0.1.0-alpha.1.exe
-- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/windows-exe.sha256
-- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-installer-pack.zip
-- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-installer-pack.zip.sha256
+- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/hermes-ceo-console-macos-arm64.dmg
+- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/hermes-ceo-console-macos-arm64.dmg.sha256
+- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/Hermes.CEO.Console.Setup.0.1.0-alpha.2.exe
+- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/windows-exe.sha256
+- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/hermes-ceo-console-installer-pack.zip
+- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/hermes-ceo-console-installer-pack.zip.sha256
 
 터미널에서 macOS DMG를 바로 받으려면:
 
 ```bash
-curl -L -o ~/Downloads/hermes-ceo-console-macos-arm64.dmg https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-macos-arm64.dmg
+curl -L -o ~/Downloads/hermes-ceo-console-macos-arm64.dmg https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/hermes-ceo-console-macos-arm64.dmg
 ```
 
 Release 자동 빌드가 아직 끝나지 않았거나 alpha 테스트 중이면 zip pack을 받아 아래 스크립트 방식으로 설치하세요.
@@ -51,7 +51,7 @@ Release 자동 빌드가 아직 끝나지 않았거나 alpha 테스트 중이면
 ### 방법 B: script pack
 
 ```bash
-curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-installer-pack.zip
+curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/hermes-ceo-console-installer-pack.zip
 unzip hermes-ceo-console-installer-pack.zip -d hermes-ceo-console-installer
 cd hermes-ceo-console-installer
 chmod +x install-macos.sh scripts/first_run_wizard.py
@@ -101,7 +101,7 @@ PowerShell을 열고:
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.1/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
+Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.2/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
 Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
 cd .\hermes-ceo-console-installer
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipPaperclip -SkipOpenCrab -SkipHermesUpdate
@@ -194,7 +194,20 @@ python3 scripts/paperclip_workflow_control.py --format json status --company FMG
 - scheduler heartbeat 요약
 - duplicate/similar routine title 감지
 - installed plugin/tool 목록
+- issue별 Live Workflow DAG API 가용성, node/edge 수, sanitized payload 확인
 - “서버는 켜져 있으나 실제 workflow 실행은 idle” 같은 운영 경고
+
+Live Workflow DAG 확인은 read-only입니다.
+
+```bash
+python3 scripts/paperclip_workflow_control.py issue-workflow WORK-2371
+python3 scripts/paperclip_workflow_control.py --format json issue-workflow WORK-2371
+```
+
+정상 기준:
+- `/api/issues/{identifier}/workflow` HTTP 200
+- `nodes`와 `edges`가 배열로 반환
+- raw event `message`/`payload`가 직접 노출되지 않고 `metadata` 중심으로 sanitize
 
 조정 기능은 dry-run이 기본입니다. 실제 변경은 반드시 `--apply --confirm APPLY`를 같이 넣어야 합니다.
 
