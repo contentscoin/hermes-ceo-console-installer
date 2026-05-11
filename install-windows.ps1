@@ -31,6 +31,7 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
   -SkipPaperclip    skip Paperclip prompt
   -SkipOpenCrab     skip OpenCrab MCP prompt
   -SkipHermesUpdate do not run hermes update when Hermes CLI already exists
+                    Note: hermes --version may remain v0.13.0; the wizard prints source commits too.
 "@
   exit 0
 }
@@ -128,10 +129,11 @@ fi
 wsl -d $Distro -- bash -lc $bootstrap
 
 Step "Install/update Hermes runtime inside WSL"
-Guide "Stage 3/4: installing/updating Hermes Agent and the FMG WebUI inside $Distro."
+Guide "Stage 3/4: checking/updating Hermes Agent and the FMG WebUI inside $Distro."
 Guide "This is the step you saw after pressing Setup again. It is normal after Ubuntu is ready."
 Guide "Keep this PowerShell window open until it prints Done. First install can take several minutes."
 Guide "Quick setup skips Codex, Telegram, and Paperclip prompts; configure them later in WebUI settings."
+Guide "Note: hermes --version may still print v0.13.0; the wizard also prints Hermes source and WebUI commits."
 $wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl", "--repo-ref", "$RepoRef", "--expected-webui-commit", "$ExpectedWebUICommit")
 if($Yes){ $wizardArgs += "--yes" }
 if($NoStart){ $wizardArgs += "--no-start" }

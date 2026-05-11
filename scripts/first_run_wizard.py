@@ -153,13 +153,48 @@ def status(port, install_dir):
     return st
 
 
+def hermes_cli_info():
+    exe = which('hermes')
+    if not exe:
+        return {'found': False}
+    rc, version = run(['hermes', '--version'])
+    src = HERMES / 'hermes-agent'
+    info = {'found': True, 'path': exe, 'version': version if rc == 0 else 'unknown'}
+    if (src / '.git').exists():
+        rc, head = run(['git', '-C', str(src), 'rev-parse', 'HEAD'])
+        if rc == 0:
+            info['source_commit'] = head.strip()
+        rc, remote = run(['git', '-C', str(src), 'remote', 'get-url', 'origin'])
+        if rc == 0:
+            info['source_remote'] = remote.strip()
+    return info
+
+
+def print_hermes_cli_info(prefix='Hermes CLI'):
+    info = hermes_cli_info()
+    if not info.get('found'):
+        print(f'{prefix}: missing')
+        return info
+    print(f"{prefix}: found at {info.get('path')}")
+    print(f"{prefix} version output: {info.get('version')}")
+    if info.get('source_remote'):
+        print(f"{prefix} source remote: {info.get('source_remote')}")
+    if info.get('source_commit'):
+        print(f"{prefix} source commit: {info.get('source_commit')}")
+    if 'v0.13.0' in str(info.get('version')) or str(info.get('version')).strip().endswith('0.13.0'):
+        print('Hermes version note: upstream Hermes Agent still reports v0.13.0; use the source commit plus WebUI commit to verify freshness.')
+    return info
+
+
 def install_hermes_if_missing(yes, skip_update=False):
     if which('hermes'):
-        print('Hermes CLI: found')
+        print_hermes_cli_info()
         if skip_update:
-            print('Hermes update: skipped')
+            print('Hermes update: skipped by installer flag')
             return
+        print('Hermes update: running hermes update')
         run(['hermes','update'], capture=False)
+        print_hermes_cli_info('Hermes CLI after update')
         return
     print('Hermes CLI: missing')
     if yes or ask('Install Hermes Agent now? y/N', 'y').lower().startswith('y'):
@@ -167,6 +202,7 @@ def install_hermes_if_missing(yes, skip_update=False):
         rc, out = run(cmd, capture=False, shell=True)
         if rc != 0:
             print('Hermes install failed. Please run the official installer manually.', file=sys.stderr)
+        print_hermes_cli_info('Hermes CLI after install')
 
 
 def clone_or_update(repo, install_dir, repo_ref=DEFAULT_REPO_REF, expected_commit=DEFAULT_EXPECTED_WEBUI_COMMIT):

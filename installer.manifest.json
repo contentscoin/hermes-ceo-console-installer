@@ -1,6 +1,6 @@
 {
   "productName": "Hermes CEO Console",
-  "version": "0.1.0-alpha.7",
+  "version": "0.1.0-alpha.8",
   "appId": "com.fmg.hermes-ceo-console",
   "defaultPort": 8788,
   "primaryRepoUrl": "https://github.com/contentscoin/hermes-for-web.git",
@@ -11,10 +11,28 @@
   "homepage": "https://github.com/contentscoin/hermes-ceo-console-installer",
   "secretsIncluded": false,
   "integrations": {
-    "telegram": {"mode": "user-token", "autoSend": false},
-    "paperclip": {"mode": "user-config", "autoReflect": false},
-    "paperclipWorkflowControl": {"mode": "local-script", "default": "read-only", "mutationsRequireConfirmation": true, "issueWorkflowDagDiagnostics": true},
-    "opencrab": {"mode": "user-config", "autoIngest": false, "endpointRedacted": true},
-    "codex": {"mode": "oauth-device-login", "silentLogin": false}
+    "telegram": {
+      "mode": "user-token",
+      "autoSend": false
+    },
+    "paperclip": {
+      "mode": "user-config",
+      "autoReflect": false
+    },
+    "paperclipWorkflowControl": {
+      "mode": "local-script",
+      "default": "read-only",
+      "mutationsRequireConfirmation": true,
+      "issueWorkflowDagDiagnostics": true
+    },
+    "opencrab": {
+      "mode": "user-config",
+      "autoIngest": false,
+      "endpointRedacted": true
+    },
+    "codex": {
+      "mode": "oauth-device-login",
+      "silentLogin": false
+    }
   }
 }
