@@ -1,6 +1,6 @@
 {
   "name": "hermes-ceo-console-desktop",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "private": true,
   "description": "Desktop wrapper and setup launcher for Hermes WebUI on localhost:8788",
   "main": "main.js",
@@ -19,8 +19,28 @@
   "build": {
     "appId": "com.fmg.hermes-ceo-console",
     "productName": "Hermes CEO Console",
-    "files": ["main.js", "preload.js", "setup.html", "setup.js", "logs.js", "package.json"],
-    "extraResources": [{"from": "../", "to": "installer", "filter": ["install-macos.sh", "install-windows.ps1", "scripts/**", "templates/**", "profiles/**", "installer.manifest.json"]}],
+    "files": [
+      "main.js",
+      "preload.js",
+      "setup.html",
+      "setup.js",
+      "logs.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../",
+        "to": "installer",
+        "filter": [
+          "install-macos.sh",
+          "install-windows.ps1",
+          "scripts/**",
+          "templates/**",
+          "profiles/**",
+          "installer.manifest.json"
+        ]
+      }
+    ],
     "afterSign": "scripts/notarize.js",
     "mac": {
       "target": "dmg",
@@ -37,9 +57,14 @@
       "target": "nsis",
       "signAndEditExecutable": true,
       "verifyUpdateCodeSignature": false,
-      "signingHashAlgorithms": ["sha256"],
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
       "rfc3161TimeStampServer": "http://timestamp.digicert.com"
     },
-    "nsis": {"oneClick": false, "allowToChangeInstallationDirectory": true}
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
