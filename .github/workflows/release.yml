@@ -169,3 +169,47 @@ jobs:
           path: |
             electron-wrapper/dist/*.exe
             electron-wrapper/dist/windows-exe.sha256
+
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [package-scripts, build-mac, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+      - name: Normalize release asset aliases
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Preparing release assets for $GITHUB_REF_NAME ($VERSION)"
+          find release-assets -maxdepth 3 -type f -print | sort
+          dmg=$(find release-assets -type f -name '*.dmg' | head -n 1 || true)
+          if [ -n "$dmg" ]; then
+            cp "$dmg" release-assets/hermes-ceo-console-macos-arm64.dmg
+            shasum -a 256 release-assets/hermes-ceo-console-macos-arm64.dmg > release-assets/hermes-ceo-console-macos-arm64.dmg.sha256
+          fi
+          exe=$(find release-assets -type f -name '*.exe' | head -n 1 || true)
+          if [ -n "$exe" ]; then
+            cp "$exe" "release-assets/Hermes.CEO.Console.Setup.${VERSION}.exe"
+            shasum -a 256 "release-assets/Hermes.CEO.Console.Setup.${VERSION}.exe" > release-assets/windows-exe.sha256
+          fi
+          pack=$(find release-assets -type f -name 'hermes-ceo-console-installer-pack.zip' | head -n 1 || true)
+          if [ -n "$pack" ]; then
+            cp "$pack" release-assets/hermes-ceo-console-installer-pack.zip
+            shasum -a 256 release-assets/hermes-ceo-console-installer-pack.zip > release-assets/hermes-ceo-console-installer-pack.zip.sha256
+          fi
+          find release-assets -maxdepth 1 -type f -print | sort
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            release-assets/hermes-ceo-console-macos-arm64.dmg
+            release-assets/hermes-ceo-console-macos-arm64.dmg.sha256
+            release-assets/Hermes.CEO.Console.Setup.*.exe
+            release-assets/windows-exe.sha256
+            release-assets/hermes-ceo-console-installer-pack.zip
+            release-assets/hermes-ceo-console-installer-pack.zip.sha256
