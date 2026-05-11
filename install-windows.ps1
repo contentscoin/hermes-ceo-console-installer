@@ -2,6 +2,8 @@ param(
   [switch]$Yes,
   [int]$Port = 8788,
   [string]$RepoUrl = "https://github.com/contentscoin/hermes-for-web.git",
+  [string]$RepoRef = "main",
+  [string]$ExpectedWebUICommit = "cef6c20c93ba80f4682aa6c6f470055b18ffcbf9",
   [string]$Distro = "Ubuntu",
   [switch]$NoStart,
   [switch]$SkipCodex,
@@ -20,6 +22,8 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
   -Yes              non-interactive defaults; does not fill secrets
   -Port 8788        WebUI port
   -RepoUrl URL      WebUI repo URL
+  -RepoRef main     WebUI repo ref/branch
+  -ExpectedWebUICommit SHA  expected FMG WebUI commit
   -Distro Ubuntu    WSL Linux distro to install/use
   -NoStart          install only
   -SkipCodex        skip Codex login step
@@ -128,7 +132,7 @@ Guide "Stage 3/4: installing/updating Hermes Agent and the FMG WebUI inside $Dis
 Guide "This is the step you saw after pressing Setup again. It is normal after Ubuntu is ready."
 Guide "Keep this PowerShell window open until it prints Done. First install can take several minutes."
 Guide "Quick setup skips Codex, Telegram, and Paperclip prompts; configure them later in WebUI settings."
-$wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl")
+$wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl", "--repo-ref", "$RepoRef", "--expected-webui-commit", "$ExpectedWebUICommit")
 if($Yes){ $wizardArgs += "--yes" }
 if($NoStart){ $wizardArgs += "--no-start" }
 if($SkipCodex){ $wizardArgs += "--skip-codex" }

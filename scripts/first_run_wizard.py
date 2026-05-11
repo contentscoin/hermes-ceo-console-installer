@@ -11,6 +11,10 @@ HERMES = HOME / ".hermes"
 ENV = HERMES / ".env"
 DEFAULT_REPO = "https://github.com/contentscoin/hermes-for-web.git"
 FALLBACK_REPO = DEFAULT_REPO
+DEFAULT_REPO_REF = "main"
+# This commit contains the FMG-customized WebUI packaging fix. Keep it in sync
+# with contentscoin/hermes-for-web main when cutting installer releases.
+DEFAULT_EXPECTED_WEBUI_COMMIT = "cef6c20c93ba80f4682aa6c6f470055b18ffcbf9"
 DEFAULT_INSTALL_DIR = HERMES / "webui" / "workspace" / "hermes-for-web"
 
 
@@ -165,10 +169,12 @@ def install_hermes_if_missing(yes, skip_update=False):
             print('Hermes install failed. Please run the official installer manually.', file=sys.stderr)
 
 
-def clone_or_update(repo, install_dir):
+def clone_or_update(repo, install_dir, repo_ref=DEFAULT_REPO_REF, expected_commit=DEFAULT_EXPECTED_WEBUI_COMMIT):
     install_dir.parent.mkdir(parents=True, exist_ok=True)
+    ref = repo_ref or DEFAULT_REPO_REF
+    expected = (expected_commit or '').strip()
     if (install_dir/'.git').exists():
-        print(f'Updating FMG WebUI: {install_dir}')
+        print(f'Updating FMG-customized WebUI: {install_dir}')
         rc, out = run(['git','-C',str(install_dir),'remote','get-url','origin'])
         current_remote = out.strip() if rc == 0 else ''
         if current_remote != repo:
@@ -177,27 +183,36 @@ def clone_or_update(repo, install_dir):
             if rc != 0:
                 print(out)
                 raise SystemExit('Could not update WebUI git remote')
-        rc, out = run(['git','-C',str(install_dir),'fetch','origin','main'])
+        rc, out = run(['git','-C',str(install_dir),'fetch','--prune','origin',ref])
         print(out)
         if rc != 0:
             raise SystemExit('WebUI fetch failed')
-        rc, out = run(['git','-C',str(install_dir),'checkout','main'])
+        if ref == 'main':
+            rc, out = run(['git','-C',str(install_dir),'checkout','-B','main','origin/main'])
+        else:
+            rc, out = run(['git','-C',str(install_dir),'checkout',ref])
         print(out)
         if rc != 0:
             raise SystemExit('WebUI checkout failed')
-        rc, out = run(['git','-C',str(install_dir),'reset','--hard','origin/main'])
+        target = f'origin/{ref}' if ref == 'main' else ref
+        rc, out = run(['git','-C',str(install_dir),'reset','--hard',target])
         print(out)
         if rc != 0:
             raise SystemExit('WebUI update failed')
     else:
-        print(f'Cloning FMG WebUI: {repo} -> {install_dir}')
-        rc, out = run(['git','clone',repo,str(install_dir)])
+        print(f'Cloning FMG-customized WebUI: {repo} ({ref}) -> {install_dir}')
+        rc, out = run(['git','clone','--branch',ref,repo,str(install_dir)])
         if rc != 0 and repo != FALLBACK_REPO:
             print('Primary repo clone failed; trying fallback repo.')
-            rc, out = run(['git','clone',FALLBACK_REPO,str(install_dir)])
+            rc, out = run(['git','clone','--branch',ref,FALLBACK_REPO,str(install_dir)])
         print(out)
         if rc != 0:
             raise SystemExit('WebUI clone failed')
+    rc, head = run(['git','-C',str(install_dir),'rev-parse','HEAD'])
+    if rc == 0:
+        print(f'Installed WebUI commit: {head}')
+        if expected and head != expected:
+            raise SystemExit(f'Installed WebUI commit {head} does not match expected FMG commit {expected}. Rerun setup after installer update or check network/cache.')
     if (install_dir/'start.sh').exists():
         (install_dir/'start.sh').chmod(0o755)
 
@@ -261,6 +276,8 @@ def main():
     ap.add_argument('--yes', action='store_true', help='use non-secret defaults; skip interactive secret prompts')
     ap.add_argument('--port', type=int, default=8788)
     ap.add_argument('--repo', default=DEFAULT_REPO)
+    ap.add_argument('--repo-ref', default=DEFAULT_REPO_REF)
+    ap.add_argument('--expected-webui-commit', default=DEFAULT_EXPECTED_WEBUI_COMMIT)
     ap.add_argument('--install-dir', default=str(DEFAULT_INSTALL_DIR))
     ap.add_argument('--skip-codex', action='store_true')
     ap.add_argument('--skip-telegram', action='store_true')
@@ -276,7 +293,7 @@ def main():
         return
     print('Hermes CEO Console setup wizard')
     install_hermes_if_missing(args.yes, args.skip_hermes_update)
-    clone_or_update(args.repo, install_dir)
+    clone_or_update(args.repo, install_dir, args.repo_ref, args.expected_webui_commit)
     configure_integrations(args)
     configure_opencrab_mcp(args)
     codex_flow(args.skip_codex, args.yes)
