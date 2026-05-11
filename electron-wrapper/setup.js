@@ -9,7 +9,7 @@ const setupGuide = [
   'CMD/PowerShell 창이 열리면:',
   '1. 이 창은 FMG 제공 WebUI를 설치/업데이트하고 바로 실행하는 quick setup입니다.',
   '2. SmartScreen 또는 권한 요청이 나오면 실행/허용을 선택하세요.',
-  '3. WSL2/Ubuntu 설치가 필요하다고 나오면 안내대로 설치하고, 재시작 또는 Ubuntu 첫 실행을 완료하세요.',
+  '3. WSL2/Ubuntu 설치가 필요하다고 나오면 관리자 PowerShell에서 `wsl --install -d Ubuntu`를 실행하세요.',
   '4. Ubuntu 첫 실행 시에는 Ubuntu 사용자 이름과 비밀번호를 한 번 만들어야 합니다.',
   '5. Codex/Telegram/Paperclip 설정 질문은 여기서 기본적으로 건너뜁니다. WebUI가 열린 뒤 설정에서 진행하세요.',
   '6. 완료 메시지가 나오면 이 앱으로 돌아와 “다시 확인”을 누르세요.',

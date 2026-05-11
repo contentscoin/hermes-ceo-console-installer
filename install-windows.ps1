@@ -90,13 +90,36 @@ New-Item -ItemType Directory -Force -Path $bin | Out-Null
 $launcher = Join-Path $bin "hermes-ceo-console-wsl.ps1"
 @"
 `$ErrorActionPreference = "Stop"
-try {
-  Invoke-WebRequest -UseBasicParsing http://127.0.0.1:$Port/health -TimeoutSec 2 | Out-Null
-} catch {
-  Start-Process wsl.exe -ArgumentList "bash -lc 'cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh $Port >> ~/.hermes/logs/hermes-ceo-console.log 2>&1'" -WindowStyle Hidden
-  Start-Sleep -Seconds 3
+`$Url = "http://127.0.0.1:$Port"
+function Test-WebUIHealth {
+  try {
+    Invoke-WebRequest -UseBasicParsing "`$Url/health" -TimeoutSec 2 | Out-Null
+    return `$true
+  } catch {
+    return `$false
+  }
 }
-Start-Process "http://127.0.0.1:$Port"
+if(Test-WebUIHealth){
+  Start-Process `$Url
+  exit 0
+}
+if(-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)){
+  Write-Warning "WSL is not installed, so Hermes CEO Console cannot start the Linux WebUI runtime yet."
+  Write-Host "Open PowerShell as Administrator and run: wsl --install -d Ubuntu"
+  Write-Host "After reboot, open Ubuntu once, create the Linux username/password, then rerun this launcher."
+  Read-Host "Press Enter to close"
+  exit 1
+}
+Start-Process wsl.exe -ArgumentList "bash -lc 'mkdir -p ~/.hermes/logs; cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh $Port >> ~/.hermes/logs/hermes-ceo-console.log 2>&1'" -WindowStyle Hidden
+for(`$i=0; `$i -lt 30; `$i++){
+  Start-Sleep -Seconds 1
+  if(Test-WebUIHealth){
+    Start-Process `$Url
+    exit 0
+  }
+}
+Write-Warning "Hermes CEO Console WebUI did not become healthy at `$Url within 30 seconds. WSL log: ~/.hermes/logs/hermes-ceo-console.log"
+Start-Process `$Url
 "@ | Set-Content -Encoding UTF8 $launcher
 
 $desktop = [Environment]::GetFolderPath('Desktop')
@@ -110,10 +133,19 @@ $shortcut.IconLocation = "powershell.exe,0"
 $shortcut.Save()
 
 Step "Verify WebUI from Windows"
-try {
-  Invoke-RestMethod "http://127.0.0.1:$Port/health" | ConvertTo-Json
-} catch {
-  Write-Warning "Health check failed. Use the Desktop shortcut or run: $launcher"
+$healthy = $false
+for($i=0; $i -lt 30; $i++){
+  try {
+    Invoke-RestMethod "http://127.0.0.1:$Port/health" | ConvertTo-Json
+    $healthy = $true
+    break
+  } catch {
+    Start-Sleep -Seconds 1
+  }
+}
+if(-not $healthy){
+  Write-Warning "Health check failed after waiting. Use the Desktop shortcut or run: $launcher"
+  Write-Host "If it still does not open, check WSL log inside Ubuntu: tail -80 ~/.hermes/logs/hermes-ceo-console.log"
 }
 Write-Host "Done. Shortcut: $shortcutPath"
 Write-Host "URL: http://127.0.0.1:$Port"
