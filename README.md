@@ -1,55 +1,170 @@
 # Hermes CEO Console Installer Pack
 
-Hermes CEO Console Installer Pack은 Hermes Agent, Hermes WebUI, Telegram bot 설정, Paperclip 연결, Codex CLI login을 한 번의 온보딩 흐름으로 묶기 위한 macOS/Windows 설치 패키지입니다.
+Hermes CEO Console Installer Pack은 FMG용 Hermes Agent, FMG 커스터마이징 Hermes WebUI, FMG 커스터마이징 Paperclip, Telegram, Codex CLI, OpenCrab 선택 설정을 하나의 온보딩 흐름으로 묶는 macOS/Windows 설치 패키지입니다.
 
-중요: 이 저장소는 API key, Telegram bot token, Paperclip token, Codex OAuth token을 포함하지 않습니다. 모든 비밀값은 사용자의 로컬 컴퓨터에서 직접 입력하고 `~/.hermes/.env` 또는 각 도구의 로컬 인증 저장소에만 저장됩니다.
+이 installer의 목표는 사용자가 데스크톱 앱처럼 Hermes CEO Console을 실행하면 내부적으로 다음 로컬 서비스가 준비되는 것입니다.
 
-## 다운로드
+- Hermes WebUI: http://127.0.0.1:8788
+- FMG Paperclip: http://127.0.0.1:3100
+- Hermes Agent CLI: `hermes`
+- 선택 통합: Telegram gateway, Codex CLI, OpenCrab MCP
 
-현재 alpha release는 `v0.1.0-alpha.9`입니다. GitHub의 `/releases/download/` 주소는 폴더 페이지가 아니므로, 반드시 아래처럼 `태그명/파일명`까지 포함된 전체 링크로 다운로드하세요.
+중요: 이 저장소는 API key, Telegram bot token, Paperclip token, Codex OAuth token, OpenCrab endpoint key를 포함하지 않습니다. 모든 비밀값은 사용자의 로컬 컴퓨터에서 직접 입력하고 `~/.hermes/.env`, `~/.hermes/config.yaml`, 또는 각 도구의 로컬 인증 저장소에만 저장됩니다.
+
+---
+
+## 1. 현재 릴리스
+
+현재 alpha release는 `v0.1.0-alpha.9`입니다.
 
 Release 페이지:
 https://github.com/contentscoin/hermes-ceo-console-installer/releases/tag/v0.1.0-alpha.9
 
 직접 다운로드:
 
-- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-macos-arm64.dmg
-- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-macos-arm64.dmg.sha256
 - Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/Hermes.CEO.Console.Setup.0.1.0-alpha.9.exe
 - Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/windows-exe.sha256
+- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-macos-arm64.dmg
+- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-macos-arm64.dmg.sha256
 - Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-installer-pack.zip
 - Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-installer-pack.zip.sha256
 
-터미널에서 macOS DMG를 바로 받으려면:
+GitHub의 `/releases/download/` 주소는 폴더 페이지가 아닙니다. 반드시 `태그명/파일명`까지 포함된 전체 링크를 사용하세요.
 
-```bash
-curl -L -o ~/Downloads/hermes-ceo-console-macos-arm64.dmg https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-macos-arm64.dmg
+---
+
+## 2. 설치 후 구성
+
+설치가 정상 완료되면 아래 구조가 됩니다.
+
+```text
+~/.hermes/
+  .env                         # 로컬 secret/env 설정
+  config.yaml                  # Hermes 설정, MCP 설정
+  logs/
+    hermes-ceo-console.log     # WebUI 실행 로그
+    paperclip-fmg.log          # Paperclip 실행 로그
+  webui/workspace/
+    hermes-for-web/            # FMG Hermes WebUI
+    paperclip/                 # FMG Paperclip
 ```
 
-Release 자동 빌드가 아직 끝나지 않았거나 alpha 테스트 중이면 zip pack을 받아 아래 스크립트 방식으로 설치하세요.
+기본 포트:
 
-## 설치 목표
+```text
+Hermes WebUI     http://127.0.0.1:8788
+Paperclip        http://127.0.0.1:3100
+Paperclip health http://127.0.0.1:3100/api/health
+WebUI health     http://127.0.0.1:8788/health
+```
 
-설치 후 사용자는 다음 흐름을 갖게 됩니다.
+FMG 소스 고정값:
 
-1. 데스크톱 앱 또는 바로가기로 Hermes CEO Console 실행
-2. 내부 WebUI는 `http://127.0.0.1:8788` 에서 실행
-3. Hermes Agent 설치/업데이트 확인
-4. FMG 제공 Hermes WebUI 설치/업데이트 확인
-5. FMG 커스터마이징 Paperclip 설치/업데이트 및 `http://127.0.0.1:3100` 실행 확인
-6. WebUI 상단/좌측 Paperclip 화면에서 실제 Paperclip 작업 화면 표시
-7. Codex, Telegram 등 상세 설정은 WebUI가 열린 뒤 진행
+```text
+Hermes WebUI repo      https://github.com/contentscoin/hermes-for-web.git
+Hermes WebUI ref       main
+Hermes WebUI commit    cef6c20c93ba80f4682aa6c6f470055b18ffcbf9
 
-## macOS 설치
+Paperclip repo         https://github.com/contentscoin/paperclip.git
+Paperclip ref          live/opencrab-default-dag-20260510
+Paperclip commit       72bb0505a09d5b789a8a88c6cbd26c024b2e4215
+```
 
-### 방법 A: DMG
+중요: `hermes --version`이 `v0.13.0`으로 보여도 정상일 수 있습니다. 이 값은 Hermes Agent CLI upstream package version입니다. FMG 커스터마이징 설치 여부는 `hermes-for-web`와 `paperclip`의 git remote/commit으로 확인해야 합니다.
 
-1. Release에서 `Hermes CEO Console-*.dmg` 다운로드
-2. 앱을 Applications로 이동
-3. 앱 실행
-4. Setup 화면이 나오면 `Run Setup Wizard` 클릭
+---
 
-### 방법 B: script pack
+## 3. Windows 설치 방법
+
+Windows 권장 방식은 WSL2 + Ubuntu 런타임입니다. Windows 앱은 데스크톱 shell처럼 작동하고, Hermes Agent / Hermes WebUI / Paperclip은 Ubuntu 안에서 실행됩니다.
+
+### 3.1 가장 쉬운 설치: Windows EXE
+
+1. 아래 EXE를 다운로드합니다.
+
+```text
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/Hermes.CEO.Console.Setup.0.1.0-alpha.9.exe
+```
+
+2. EXE를 실행해 설치합니다.
+3. Hermes CEO Console 앱을 엽니다.
+4. 첫 화면에서 `Setup Wizard` 또는 `처음 설치` 버튼을 누릅니다.
+5. 별도 CMD/PowerShell 창이 열리면 닫지 말고 완료될 때까지 기다립니다.
+6. 설치가 끝나면 앱으로 돌아가 `Retry / Check Again` 또는 `다시 확인`을 누릅니다.
+7. 정상 설치되면 `http://127.0.0.1:8788` WebUI가 열립니다.
+8. WebUI의 Paperclip 탭에서 `http://127.0.0.1:3100` Paperclip 화면이 표시됩니다.
+
+### 3.2 WSL/Ubuntu가 없는 경우
+
+Installer가 WSL 또는 Ubuntu가 없다고 안내하면 관리자 PowerShell에서 아래 명령을 실행합니다.
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+Microsoft Store 또는 기본 설치가 막히는 환경에서는 다음 fallback을 시도합니다.
+
+```powershell
+wsl --install --web-download -d Ubuntu
+```
+
+Windows가 재시작을 요구하면 재시작합니다. 그 다음 Ubuntu 앱을 한 번 직접 열어 Linux username/password를 생성합니다. 비밀번호 입력 중 화면에 아무 글자도 보이지 않는 것은 정상입니다.
+
+Ubuntu 초기화가 끝난 뒤 Hermes CEO Console을 다시 열고 `Setup Wizard`를 다시 누르면 Hermes Agent / FMG WebUI / FMG Paperclip 설치 단계로 이어집니다.
+
+### 3.3 PowerShell script pack 설치
+
+EXE 대신 script pack으로 설치하려면 PowerShell에서 실행합니다.
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
+Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
+cd .\hermes-ceo-console-installer
+powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipOpenCrab
+```
+
+`-SkipPaperclip`은 기본 사용하지 마세요. 이 installer의 alpha.9부터는 FMG 커스터마이징 Paperclip이 기본 설치 대상입니다.
+
+### 3.4 Windows 설치 중 보이는 단계
+
+설치 창에는 대략 다음 단계가 표시됩니다.
+
+1. WSL2 사용 가능 여부 확인
+2. Ubuntu distro 설치/초기화 여부 확인
+3. Ubuntu 안에 `python3`, `git`, `curl` 설치
+4. Hermes Agent 설치/업데이트
+5. FMG Hermes WebUI clone/update 및 commit 검증
+6. FMG Paperclip clone/update 및 commit 검증
+7. Node 20 / pnpm 9.15.4 준비
+8. Paperclip dependency install
+9. Paperclip 실행 및 `/api/health` 확인
+10. Hermes WebUI 실행 및 `/health` 확인
+11. Windows 브라우저에서 WebUI 열기
+
+첫 설치는 몇 분 걸릴 수 있습니다. 특히 Node/pnpm/Paperclip dependency 설치 구간은 오래 걸릴 수 있으므로 창을 닫지 마세요.
+
+---
+
+## 4. macOS 설치 방법
+
+macOS는 WSL 없이 로컬에서 Hermes Agent / WebUI / Paperclip을 실행합니다.
+
+### 4.1 DMG 설치
+
+1. Release에서 DMG를 다운로드합니다.
+
+```text
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-macos-arm64.dmg
+```
+
+2. DMG를 열고 앱을 Applications로 이동합니다.
+3. 앱을 실행합니다.
+4. Setup 화면이 나오면 `Run Setup Wizard`를 누릅니다.
+
+Unsigned 또는 notarization 상태에 따라 Gatekeeper 경고가 보일 수 있습니다. 이 경우 시스템 설정의 보안 허용 또는 우클릭 > 열기 흐름이 필요할 수 있습니다.
+
+### 4.2 script pack 설치
 
 ```bash
 curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-installer-pack.zip
@@ -65,109 +180,196 @@ chmod +x install-macos.sh scripts/first_run_wizard.py
 ./install-macos.sh --yes --skip-telegram --skip-opencrab --skip-codex
 ```
 
-설치 후 URL:
+macOS에서도 Paperclip을 기본 설치/실행하려면 `--skip-paperclip`을 넣지 마세요.
+
+---
+
+## 5. 설치 후 필수 확인 명령
+
+### 5.1 Windows 확인
+
+PowerShell에서 실행합니다.
+
+```powershell
+wsl bash -lc "cd ~/.hermes/webui/workspace/hermes-for-web && git remote get-url origin && git rev-parse HEAD"
+wsl bash -lc "cd ~/.hermes/webui/workspace/paperclip && git remote get-url origin && git rev-parse HEAD"
+wsl bash -lc "curl -fsS http://127.0.0.1:3100/api/health && echo && curl -fsS http://127.0.0.1:8788/health"
+```
+
+기대값:
+
+```text
+Hermes WebUI origin: https://github.com/contentscoin/hermes-for-web.git
+Hermes WebUI HEAD:   cef6c20c93ba80f4682aa6c6f470055b18ffcbf9
+
+Paperclip origin:    https://github.com/contentscoin/paperclip.git
+Paperclip HEAD:      72bb0505a09d5b789a8a88c6cbd26c024b2e4215
+```
+
+### 5.2 macOS 확인
+
+```bash
+cd ~/.hermes/webui/workspace/hermes-for-web && git remote get-url origin && git rev-parse HEAD
+cd ~/.hermes/webui/workspace/paperclip && git remote get-url origin && git rev-parse HEAD
+curl -fsS http://127.0.0.1:3100/api/health
+curl -fsS http://127.0.0.1:8788/health
+```
+
+### 5.3 WebUI 화면 확인
+
+브라우저에서 아래 주소를 엽니다.
 
 ```text
 http://127.0.0.1:8788
 ```
 
-## Windows 설치
+확인할 것:
 
-권장 방식은 WSL2 런타임입니다. Windows 앱은 데스크톱 앱처럼 작동하고, Hermes/Hermes WebUI는 WSL2 Ubuntu 안에서 실행됩니다.
+- Hermes CEO Console UI가 열린다.
+- 왼쪽/상단의 Paperclip 탭을 누르면 Paperclip 화면이 iframe으로 보인다.
+- Paperclip 직접 주소 `http://127.0.0.1:3100`도 열린다.
+- Paperclip issue/detail 화면이 blank가 아니고 실제 내용이 보인다.
 
-### 방법 A: EXE
+---
 
-1. Release에서 `Hermes CEO Console Setup *.exe` 다운로드
-2. 설치 실행
-3. 앱에서 `처음 설치 / Setup Wizard`를 누르면 별도 CMD/PowerShell 창이 열립니다.
-4. 설치 프로그램은 `https://github.com/contentscoin/hermes-for-web.git`의 FMG 제공 WebUI를 설치/업데이트합니다. 이번 installer는 FMG 수정본 commit `cef6c20`을 기대값으로 검증하므로, 원본/upstream WebUI가 남아 있으면 `origin`을 FMG repo로 바꾸고 `origin/main` 기준으로 hard reset합니다.
-5. 설치 프로그램은 `https://github.com/contentscoin/paperclip.git`의 FMG 커스터마이징 Paperclip도 함께 설치/업데이트합니다. 기대 commit은 `72bb050`이며, WebUI Paperclip 탭은 기본적으로 `http://127.0.0.1:3100`의 실제 Paperclip 화면을 보여줍니다.
-6. `hermes --version`은 최신 소스에서도 `v0.13.0`으로 보일 수 있습니다. 이 값은 Hermes Agent upstream package version 문자열이며, FMG WebUI/Paperclip이 원본인지 여부는 각 repo/commit으로 확인해야 합니다. 최신 setup wizard는 Hermes CLI 경로, version, source commit, WebUI commit, Paperclip commit을 함께 출력합니다.
-7. 기본 흐름은 quick setup입니다. CMD에서는 WSL2/Ubuntu, Hermes, FMG WebUI, FMG Paperclip 실행에 필요한 최소 단계만 진행하고, Codex/Telegram 상세 설정은 WebUI가 열린 뒤 진행합니다.
+## 6. 세부 설정 방법
 
-주의: Setup Wizard는 숨은 백그라운드가 아니라 눈에 보이는 명령 프롬프트/PowerShell 창에서 진행됩니다. 다만 최신 EXE의 기본값은 quick setup이므로 Codex login, Telegram token, Paperclip 값 입력은 CMD에서 묻지 않고 WebUI 실행 후 설정하도록 넘깁니다. 버튼을 눌렀는데 화면이 바뀌지 않으면 Windows 작업표시줄의 새 창이나 보안 경고 창을 먼저 확인하세요. 그래도 아무 창이 열리지 않으면 앱 화면에 표시되는 `run-hermes-ceo-console-setup.cmd` 파일 경로를 직접 더블클릭하세요. 예전 빌드에서 `Hermes CEO Console Setup을 찾을 수 없습니다` 오류가 뜬 경우 최신 EXE를 다시 다운로드해 설치하세요.
+### 6.1 Hermes Agent 기본 설정
 
-CMD/PowerShell 창이 열리면 이렇게 진행하세요.
+설치 후 모델/provider 설정을 하려면 터미널에서 실행합니다.
 
-1. 창을 닫지 마세요. 설치가 끝났다고 안내할 때까지 그대로 둡니다.
-2. Windows SmartScreen, 보안 경고, 권한 요청이 나오면 `실행`, `허용`, 또는 `추가 정보 > 실행`을 선택합니다.
-3. WSL2 또는 Ubuntu 설치가 필요하다고 나오면 화면 안내대로 진행합니다. Windows 재시작을 요구하면 재시작한 뒤 Hermes CEO Console을 다시 열고 `처음 설치 / Setup Wizard`를 다시 누릅니다.
-4. Ubuntu가 처음 열리면 Ubuntu 사용자 이름과 비밀번호를 한 번 만듭니다. 입력 중 비밀번호가 화면에 보이지 않아도 정상입니다.
-5. Ubuntu 설치/초기화가 끝난 뒤 `처음 설치 / Setup Wizard`를 한 번 더 누르면 Hermes Agent 설치 단계로 넘어갑니다. 이것은 정상 흐름입니다.
-6. Hermes Agent/WebUI 설치 단계는 몇 분 걸릴 수 있습니다. `Install/update Hermes runtime inside WSL` 또는 `Installing Hermes Agent` 같은 문구가 보이면 그대로 기다리세요.
-7. FMG 제공 WebUI가 `contentscoin/hermes-for-web`에서 설치 또는 업데이트됩니다. 기존에 초기/공개 원본 WebUI가 설치돼 있어도 이 저장소 기준으로 맞춥니다.
-8. Codex login, Telegram token 설정은 CMD에서 기본적으로 건너뜁니다. Paperclip은 FMG 커스터마이징 소스를 로컬에 설치/실행하고 기본 URL을 `.env`에 기록합니다.
-9. 완료 메시지가 나오면 Hermes CEO Console 앱으로 돌아가 `다시 확인`을 누릅니다. 정상 설치되면 WebUI가 `http://127.0.0.1:8788`로 열립니다.
-10. 오류가 나오면 CMD/PowerShell 창을 닫지 말고 마지막 오류 줄과 `%USERPROFILE%\.hermes\logs\hermes-ceo-console.log` 로그 경로를 확인합니다.
-
-### 방법 B: PowerShell script pack
-
-PowerShell을 열고:
+Windows:
 
 ```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
-Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
-cd .\hermes-ceo-console-installer
-powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipOpenCrab
+wsl bash -lc "hermes setup"
+wsl bash -lc "hermes doctor"
 ```
 
-WSL2가 없다면 관리자 PowerShell에서 먼저:
+macOS:
 
-```powershell
-wsl --install -d Ubuntu
+```bash
+hermes setup
+hermes doctor
 ```
 
-그 뒤 Windows 재시작 또는 Ubuntu 첫 실행을 완료하고 installer를 다시 실행하세요. Ubuntu가 이미 준비되어 있다면 다음 실행에서 Hermes Agent/WebUI 설치 단계로 이어지는 것이 정상입니다. Windows 설치가 중간에 멈추거나 바로 닫히면 대부분 아래 2가지 중 하나입니다.
+자주 쓰는 명령:
 
-```powershell
-wsl -l -v
-wsl bash -lc "python3 --version && git --version && curl --version"
+```bash
+hermes model
+hermes config
+hermes config edit
+hermes status --all
+hermes tools list
+hermes skills list
 ```
 
-- `wsl bash`가 실패하면 Ubuntu를 한 번 직접 열어 Linux username/password 초기화를 끝낸 뒤 다시 실행하세요.
-- `python3`, `git`, `curl` 중 하나가 없으면 최신 installer가 WSL 안에서 자동 설치를 시도합니다. 수동으로는 `wsl bash -lc "sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip git curl ca-certificates"`를 실행하면 됩니다.
+설정 파일:
 
-## Codex CLI login
+```text
+~/.hermes/config.yaml
+```
 
-Codex CLI login은 자동으로 끝낼 수 없습니다. 설치 마법사가 `codex login`을 실행하거나 안내하면 브라우저/OAuth/device flow를 사용자가 직접 승인해야 합니다.
+비밀값 파일:
 
-설치 후 직접 실행:
+```text
+~/.hermes/.env
+```
+
+### 6.2 모델/provider 설정
+
+대화 모델은 `hermes model`에서 선택하는 것이 가장 안전합니다.
+
+```bash
+hermes model
+```
+
+직접 설정할 수도 있습니다.
+
+```bash
+hermes config set model.provider openrouter
+hermes config set model.default openai/gpt-5.5
+```
+
+Provider API key는 보통 `~/.hermes/.env`에 저장합니다. 예시는 아래와 같지만 실제 key는 README나 GitHub에 절대 넣지 마세요.
+
+```text
+OPENROUTER_API_KEY=...
+ANTHROPIC_API_KEY=...
+OPENAI_API_KEY=...
+GOOGLE_API_KEY=...
+```
+
+설정 변경 후에는 새 Hermes 세션 또는 gateway 재시작이 필요할 수 있습니다.
+
+### 6.3 Codex CLI 설정
+
+Codex login은 자동으로 끝낼 수 없습니다. OAuth/device flow는 사용자가 직접 승인해야 합니다.
+
+macOS:
 
 ```bash
 codex --version
 codex login
 ```
 
-Windows WSL2 모드에서는 WSL 안에서 실행하세요.
+Windows WSL:
 
 ```powershell
 wsl bash -lc "codex --version && codex login"
 ```
 
-## Telegram bot setup
+설치 wizard의 quick setup은 Codex login을 기본으로 건너뜁니다. WebUI가 먼저 열린 뒤 필요할 때 설정하세요.
 
-Telegram bot token은 BotFather에서 생성해야 합니다.
+### 6.4 Telegram bot 설정
+
+Telegram bot token은 BotFather에서 생성합니다.
 
 1. https://t.me/BotFather 열기
 2. `/newbot` 실행
-3. bot 이름/username 지정
-4. token을 복사
-5. setup wizard에 붙여넣기
+3. bot 이름과 username 지정
+4. token 복사
+5. `~/.hermes/.env` 또는 `hermes gateway setup`에서 설정
+
+일반 명령:
+
+```bash
+hermes gateway setup
+hermes gateway run
+```
+
+서비스로 실행하려면:
+
+```bash
+hermes gateway install
+hermes gateway start
+hermes gateway status
+```
+
+Windows WSL에서는 앞에 `wsl bash -lc`를 붙여 실행합니다.
+
+```powershell
+wsl bash -lc "hermes gateway setup"
+wsl bash -lc "hermes gateway run"
+```
 
 주의:
-- token은 화면에 다시 출력하지 않습니다.
+
+- Telegram token은 화면에 다시 출력하지 않습니다.
 - token은 repo에 저장하지 않습니다.
-- 실제 Telegram 메시지 전송은 항상 대상/문구 승인 후 진행해야 합니다.
+- 실제 Telegram 메시지 전송은 항상 대상과 문구 확인 후 진행해야 합니다.
+- Paperclip 반영은 Telegram 대화만으로 자동 실행하지 않습니다.
 
-## Paperclip setup
+### 6.5 Paperclip 설정
 
-필요한 값:
+alpha.9부터 installer는 FMG 커스터마이징 Paperclip을 기본 설치합니다.
 
-- `PAPERCLIP_WEB_URL` — WebUI 상단 Paperclip 탭에 embed되는 실제 Paperclip 작업 화면 URL. 기본값은 `http://127.0.0.1:3100` 입니다.
-- `PAPERCLIP_BASE_URL` — MCP/API 작업용 Paperclip base URL
-- `PAPERCLIP_DEFAULT_COMPANY`
-- 필요한 경우 `PAPERCLIP_API_TOKEN`
+기본값:
+
+```text
+PAPERCLIP_WEB_URL=http://127.0.0.1:3100
+PAPERCLIP_BASE_URL=http://127.0.0.1:3100
+PAPERCLIP_DEFAULT_COMPANY=FMG
+```
 
 설정 위치:
 
@@ -175,70 +377,129 @@ Telegram bot token은 BotFather에서 생성해야 합니다.
 ~/.hermes/.env
 ```
 
-원칙:
-- 설치 프로그램은 Paperclip 연결 정보를 설정/점검할 수 있습니다.
+직접 확인:
+
+```bash
+grep -E '^PAPERCLIP_' ~/.hermes/.env
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "grep -E '^PAPERCLIP_' ~/.hermes/.env"
+```
+
+Paperclip 실행 상태 확인:
+
+```bash
+curl -fsS http://127.0.0.1:3100/api/health
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "curl -fsS http://127.0.0.1:3100/api/health"
+```
+
+Paperclip 수동 실행:
+
+```bash
+cd ~/.hermes/webui/workspace/paperclip
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20
+pnpm paperclipai run --instance default
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "cd ~/.hermes/webui/workspace/paperclip && export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && nvm use 20 && pnpm paperclipai run --instance default"
+```
+
+Paperclip 운영 원칙:
+
+- WebUI의 Paperclip 탭은 실제 Paperclip 화면을 보여주는 용도입니다.
 - Paperclip issue/comment/status update는 자동 실행하지 않습니다.
-- Decision Report / dry-run preview 후 명시 승인 시에만 반영해야 합니다.
+- Telegram/Hermes 논의는 Paperclip에 자동 반영하지 않습니다.
+- 항상 Decision Report 또는 결과 보고서를 먼저 만들고, 사용자의 명시 승인 후에만 반영합니다.
 
-## Paperclip Workflow Control Pack
+승인 예시:
 
-installer에는 Paperclip live workflow가 실제로 돌고 있는지 확인하고, 필요한 경우 routine을 조정할 수 있는 로컬 스크립트가 포함됩니다.
+```text
+승인
+반영해
+Paperclip 반영 승인
+comment만 반영해
+issue create 승인
+full execution 승인
+```
 
-기본 진단은 read-only입니다.
+승인으로 보지 않는 예시:
+
+```text
+좋아
+오케이
+괜찮네
+그 방향으로 보자
+맞는 듯
+```
+
+### 6.6 Paperclip Workflow Control Pack
+
+installer에는 Paperclip live workflow 상태를 read-only로 점검하고, 필요한 경우 명시 승인 후 routine을 조정할 수 있는 로컬 스크립트가 포함됩니다.
+
+기본 진단:
 
 ```bash
 python3 scripts/paperclip_workflow_control.py status
 python3 scripts/paperclip_workflow_control.py --format json status --company FMG
 ```
 
-진단 항목:
+Windows:
 
-- Paperclip `/api/health`
-- company/project/routine/live-run 수
-- routine status 요약(active/paused/archived)
-- scheduler heartbeat 요약
-- duplicate/similar routine title 감지
-- installed plugin/tool 목록
-- issue별 Live Workflow DAG API 가용성, node/edge 수, sanitized payload 확인
-- “서버는 켜져 있으나 실제 workflow 실행은 idle” 같은 운영 경고
+```powershell
+wsl bash -lc "cd ~/.hermes/webui/workspace/hermes-ceo-console-installer && python3 scripts/paperclip_workflow_control.py status"
+```
 
-Live Workflow DAG 확인은 read-only입니다.
+Issue Workflow DAG 확인:
 
 ```bash
 python3 scripts/paperclip_workflow_control.py issue-workflow WORK-2371
 python3 scripts/paperclip_workflow_control.py --format json issue-workflow WORK-2371
 ```
 
-정상 기준:
-- `/api/issues/{identifier}/workflow` HTTP 200
-- `nodes`와 `edges`가 배열로 반환
-- raw event `message`/`payload`가 직접 노출되지 않고 `metadata` 중심으로 sanitize
+진단 항목:
 
-조정 기능은 dry-run이 기본입니다. 실제 변경은 반드시 `--apply --confirm APPLY`를 같이 넣어야 합니다.
+- Paperclip `/api/health`
+- company/project/routine/live-run 수
+- routine status 요약
+- scheduler heartbeat 요약
+- duplicate/similar routine title 감지
+- installed plugin/tool 목록
+- issue별 Live Workflow DAG API 가용성
+- node/edge 수
+- raw event message/payload sanitize 여부
+
+조정 기능은 dry-run이 기본입니다.
 
 ```bash
-# dry-run only
 python3 scripts/paperclip_workflow_control.py pause-routine ROUTINE_ID
 python3 scripts/paperclip_workflow_control.py resume-routine ROUTINE_ID
 python3 scripts/paperclip_workflow_control.py run-routine ROUTINE_ID
 python3 scripts/paperclip_workflow_control.py update-trigger TRIGGER_ID --cron "0 9 * * *" --timezone Asia/Seoul
+```
 
-# 실제 반영
+실제 반영은 반드시 `--apply --confirm APPLY`를 같이 넣어야 합니다.
+
+```bash
 python3 scripts/paperclip_workflow_control.py resume-routine ROUTINE_ID --apply --confirm APPLY
 ```
 
-원칙:
+### 6.7 OpenCrab MCP 설정
 
-- read-only status는 승인 없이 실행할 수 있습니다.
-- pause/resume/manual run/trigger update는 dry-run preview 후 명시 승인으로만 실행합니다.
-- raw DB를 직접 수정하지 않고 Paperclip API를 통해 조정합니다.
-- Telegram 논의 내용은 자동으로 Paperclip에 반영하지 않습니다.
+OpenCrab은 Hermes/Paperclip 의사결정에 ontology evidence를 붙이기 위한 선택 통합입니다. endpoint URL에 key가 포함될 수 있으므로 README, issue comment, log, 보고서에는 원문을 남기지 마세요.
 
-## OpenCrab setup
-
-OpenCrab은 Hermes/Paperclip 의사결정에 ontology evidence를 붙이기 위한 선택 통합입니다. endpoint URL에 key가 포함될 수 있으므로 installer는 값을 다시 출력하지 않고, 로컬 `~/.hermes/config.yaml`에만 저장합니다.
-
-설치 중 입력하거나 나중에 직접 설정할 수 있습니다.
+예시 형태:
 
 ```yaml
 mcp_servers:
@@ -248,52 +509,314 @@ mcp_servers:
     connect_timeout: 60
 ```
 
+설정 후 확인:
+
+```bash
+hermes mcp list
+hermes mcp test opencrab
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "hermes mcp list && hermes mcp test opencrab"
+```
+
 원칙:
-- OpenCrab endpoint/key는 repo, README, Paperclip comment에 저장하지 않습니다.
+
+- endpoint/key는 repo, README, Paperclip comment에 저장하지 않습니다.
 - Hermes gateway/agent 재시작 후 MCP tool discovery가 적용됩니다.
-- OpenCrab ingest/mutation은 기본 비활성으로 유지하고, 별도 승인 없이는 자동 실행하지 않습니다.
+- OpenCrab ingest/mutation은 기본 비활성으로 유지합니다.
+- 별도 승인 없이는 자동 ingest를 실행하지 않습니다.
 
-## Hermes setup
+---
 
-처음 사용하는 사용자는 설치 후 다음을 실행하세요.
+## 7. 실행/재실행 방법
 
-```bash
-hermes setup
-hermes doctor
+### 7.1 Windows 앱 실행
+
+일반적으로 Start Menu 또는 Desktop shortcut에서 Hermes CEO Console을 실행합니다.
+
+수동으로 WebUI와 Paperclip을 재시작해야 할 때:
+
+```powershell
+wsl bash -lc "mkdir -p ~/.hermes/logs; export NVM_DIR=\"$HOME/.nvm\"; [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && nvm use 20 >/dev/null; cd ~/.hermes/webui/workspace/paperclip && nohup pnpm paperclipai run --instance default >> ~/.hermes/logs/paperclip-fmg.log 2>&1 & cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh 8788 >> ~/.hermes/logs/hermes-ceo-console.log 2>&1"
 ```
 
-Telegram gateway를 쓰려면:
+### 7.2 macOS 앱 실행
+
+앱 또는 launcher를 실행하면 WebUI health를 확인하고, 필요하면 `~/.hermes/webui/workspace/hermes-for-web/start.sh`를 실행합니다.
+
+수동 실행:
 
 ```bash
-hermes gateway setup
-hermes gateway run
+mkdir -p ~/.hermes/logs
+cd ~/.hermes/webui/workspace/paperclip
+nohup pnpm paperclipai run --instance default >> ~/.hermes/logs/paperclip-fmg.log 2>&1 &
+cd ~/.hermes/webui/workspace/hermes-for-web
+./start.sh 8788
 ```
 
-또는 OS 서비스 설치:
+---
+
+## 8. 로그와 상태 확인
+
+### 8.1 WebUI 로그
+
+macOS:
 
 ```bash
-hermes gateway install
-hermes gateway start
+tail -100 ~/.hermes/logs/hermes-ceo-console.log
 ```
 
-## 포함 파일
+Windows:
+
+```powershell
+wsl bash -lc "tail -100 ~/.hermes/logs/hermes-ceo-console.log"
+```
+
+### 8.2 Paperclip 로그
+
+macOS:
+
+```bash
+tail -100 ~/.hermes/logs/paperclip-fmg.log
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "tail -100 ~/.hermes/logs/paperclip-fmg.log"
+```
+
+### 8.3 포트 확인
+
+macOS:
+
+```bash
+lsof -nP -iTCP:8788 -sTCP:LISTEN
+lsof -nP -iTCP:3100 -sTCP:LISTEN
+```
+
+Windows PowerShell:
+
+```powershell
+netstat -ano | findstr :8788
+netstat -ano | findstr :3100
+```
+
+WSL 내부:
+
+```powershell
+wsl bash -lc "ss -ltnp | grep -E ':8788|:3100' || true"
+```
+
+---
+
+## 9. 업데이트 방법
+
+### 9.1 installer 자체 업데이트
+
+새 release EXE 또는 script pack을 받아 다시 실행합니다. 기존 WSL/Ubuntu와 `~/.hermes` 데이터는 유지됩니다.
+
+### 9.2 Hermes WebUI / Paperclip 업데이트
+
+Setup Wizard를 다시 실행하면 installer가 다음을 수행합니다.
+
+- 기존 `hermes-for-web`의 origin이 FMG repo가 아니면 FMG repo로 변경
+- `origin/main` fetch
+- expected commit으로 reset/검증
+- 기존 `paperclip`의 origin이 FMG repo가 아니면 FMG repo로 변경
+- `live/opencrab-default-dag-20260510` fetch
+- expected commit으로 reset/검증
+
+주의: 이 흐름은 설치 디렉터리의 로컬 수정사항을 reset할 수 있습니다. 설치 디렉터리에서 직접 개발 중이었다면 먼저 별도 branch나 patch로 백업하세요.
+
+---
+
+## 10. 문제 해결
+
+### 10.1 WebUI가 열리지 않음
+
+확인:
+
+```bash
+curl -fsS http://127.0.0.1:8788/health
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "curl -fsS http://127.0.0.1:8788/health"
+wsl bash -lc "tail -100 ~/.hermes/logs/hermes-ceo-console.log"
+```
+
+가능 원인:
+
+- WSL/Ubuntu가 아직 초기화되지 않음
+- WebUI process가 실행되지 않음
+- 8788 포트 충돌
+- 오래된 WebUI process가 다른 clone에서 실행 중
+
+### 10.2 Paperclip 탭이 비어 있음
+
+먼저 Paperclip 자체 health를 확인합니다.
+
+```bash
+curl -fsS http://127.0.0.1:3100/api/health
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "curl -fsS http://127.0.0.1:3100/api/health"
+wsl bash -lc "tail -100 ~/.hermes/logs/paperclip-fmg.log"
+```
+
+가능 원인:
+
+- Paperclip server가 실행되지 않음
+- 3100 포트 충돌
+- dependency install 실패
+- WebUI가 오래된 process라 Paperclip iframe/status route가 반영되지 않음
+- 브라우저 onboarding/modal이 iframe을 가리고 있음
+
+해결 순서:
+
+1. `http://127.0.0.1:3100` 직접 열기
+2. `http://127.0.0.1:3100/api/health` 확인
+3. WebUI 새로고침
+4. WebUI/Paperclip process 재시작
+5. 로그 확인
+
+### 10.3 `hermes --version`이 v0.13.0으로 나옴
+
+정상일 수 있습니다. 이 값은 Hermes Agent package version입니다.
+
+FMG WebUI/Paperclip 설치 확인은 아래로 해야 합니다.
+
+```bash
+cd ~/.hermes/webui/workspace/hermes-for-web && git remote get-url origin && git rev-parse HEAD
+cd ~/.hermes/webui/workspace/paperclip && git remote get-url origin && git rev-parse HEAD
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "cd ~/.hermes/webui/workspace/hermes-for-web && git remote get-url origin && git rev-parse HEAD"
+wsl bash -lc "cd ~/.hermes/webui/workspace/paperclip && git remote get-url origin && git rev-parse HEAD"
+```
+
+### 10.4 Windows에서 WSL 연결 실패
+
+```powershell
+wsl -l -v
+wsl -d Ubuntu -- bash -lc "printf wsl-ready"
+```
+
+Ubuntu가 목록에 없으면:
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+Ubuntu는 있는데 ready check가 실패하면 Ubuntu 앱을 직접 열어 username/password 초기화를 완료하세요.
+
+### 10.5 Node/pnpm 문제
+
+Paperclip은 Node 20 계열과 pnpm 9.15.4 기준으로 맞춥니다.
+
+확인:
+
+```bash
+node --version
+pnpm --version
+```
+
+Windows:
+
+```powershell
+wsl bash -lc "export NVM_DIR=\"$HOME/.nvm\"; [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"; node --version; pnpm --version"
+```
+
+수동 복구:
+
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm install 20
+nvm use 20
+corepack enable
+corepack prepare pnpm@9.15.4 --activate
+```
+
+### 10.6 SmartScreen / Gatekeeper 경고
+
+현재 alpha installer는 code signing/notarization이 제한적일 수 있습니다.
+
+- Windows SmartScreen: `추가 정보` > `실행`
+- macOS Gatekeeper: 우클릭 > 열기 또는 시스템 설정 > 개인정보 보호 및 보안에서 허용
+
+장기 과제:
+
+- Apple Developer ID signing/notarization
+- Windows Authenticode signing
+- auto-update
+
+---
+
+## 11. 보안 및 운영 원칙
+
+1. 이 repo에는 secret이 없습니다.
+2. `.env`, token, OAuth cache, API key는 commit하지 않습니다.
+3. setup wizard는 secret 값을 다시 출력하지 않습니다.
+4. OpenCrab endpoint는 key를 포함할 수 있으므로 항상 `https://opencrab.sh/api/mcp/[REDACTED]` 형태로만 문서화합니다.
+5. Telegram 전송은 대상과 문구 확인 후에만 실행합니다.
+6. Paperclip 반영은 Decision Report / 결과 보고 후 명시 승인 시에만 실행합니다.
+7. read-only 진단은 승인 없이 가능하지만, pause/resume/manual-run/update 같은 변경 작업은 dry-run preview와 명시 승인이 필요합니다.
+8. Installer는 로컬 개발용 alpha입니다. 조직 배포 전 signing, notarization, checksum 검증을 권장합니다.
+
+---
+
+## 12. 포함 파일
 
 ```text
+README.md
+LICENSE
+installer.manifest.json
 install-macos.sh
 install-windows.ps1
-installer.manifest.json
-scripts/first_run_wizard.py
-scripts/install-wsl-runtime.ps1
-scripts/wsl-hermes-start.ps1
-templates/.env.example
-profiles/fmg.profile.json
+scripts/
+  first_run_wizard.py
+  install-wsl-runtime.ps1
+  wsl-hermes-start.ps1
+  paperclip_workflow_control.py
+templates/
+  .env.example
+profiles/
+  fmg.profile.json
 electron-wrapper/
-.github/workflows/release.yml
+  main.js
+  preload.js
+  setup.html
+  setup.js
+  package.json
+.github/workflows/
+  release.yml
 ```
 
-## 개발자 빌드
+---
 
-### macOS DMG
+## 13. 개발자 빌드
+
+### 13.1 Script installer zip
+
+```bash
+zip -r hermes-ceo-console-installer-pack.zip install-macos.sh install-windows.ps1 scripts templates profiles installer.manifest.json README.md LICENSE docs/SIGNING.md
+shasum -a 256 hermes-ceo-console-installer-pack.zip > hermes-ceo-console-installer-pack.zip.sha256
+```
+
+### 13.2 macOS DMG
 
 ```bash
 cd electron-wrapper
@@ -307,7 +830,7 @@ npm run build:mac
 electron-wrapper/dist/*.dmg
 ```
 
-### Windows EXE
+### 13.3 Windows EXE
 
 Windows 또는 GitHub Actions Windows runner에서:
 
@@ -323,66 +846,58 @@ npm run build:win
 electron-wrapper/dist/*.exe
 ```
 
-### Script installer zip
+### 13.4 릴리스 검증 체크리스트
 
 ```bash
-zip -r hermes-ceo-console-installer-pack.zip install-macos.sh install-windows.ps1 scripts templates profiles installer.manifest.json README.md LICENSE
+python3 -m json.tool installer.manifest.json
+python3 -m json.tool profiles/fmg.profile.json
+python3 -m py_compile scripts/first_run_wizard.py scripts/paperclip_workflow_control.py
+bash -n install-macos.sh
+node --check electron-wrapper/main.js
+node --check electron-wrapper/setup.js
+node --check electron-wrapper/preload.js
 ```
 
-## 보안 원칙
-
-- 이 repo에는 secret이 없습니다.
-- `.env`, token, OAuth cache, API key는 commit하지 않습니다.
-- setup wizard는 secret 값을 다시 출력하지 않습니다.
-- Paperclip 반영과 Telegram 전송은 설치 완료 후에도 승인 게이트를 유지해야 합니다.
-
-## 문제 해결
-
-### WebUI가 열리지 않음
+Release asset 확인:
 
 ```bash
-curl http://127.0.0.1:8788/health
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/Hermes.CEO.Console.Setup.0.1.0-alpha.9.exe
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.9/hermes-ceo-console-installer-pack.zip
 ```
 
-macOS log:
+Script pack 내용 확인:
 
 ```bash
-tail -100 ~/.hermes/logs/hermes-ceo-console.log
+python3 - <<'PY'
+import zipfile
+z=zipfile.ZipFile('hermes-ceo-console-installer-pack.zip')
+for name in ['scripts/first_run_wizard.py','scripts/wsl-hermes-start.ps1','installer.manifest.json','README.md']:
+    print(name, name in z.namelist())
+PY
 ```
 
-Windows WSL log:
+---
 
-```powershell
-wsl bash -lc "tail -100 ~/.hermes/logs/hermes-ceo-console.log"
-```
+## 14. 현재 상태와 다음 과제
 
-### Hermes가 없음
+현재 상태:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
-hermes setup
-```
+- alpha installer pack
+- Windows WSL2-first installer
+- macOS script/DMG installer
+- FMG Hermes WebUI 기본 설치
+- FMG Paperclip 기본 설치
+- Paperclip live iframe 연동
+- Paperclip Workflow Control read-only 진단
+- OpenCrab 선택 설정
+- Telegram/Codex 후속 설정 가이드
+- secret-free profile/manifest
 
-### Windows에서 WSL 연결 안 됨
+남은 과제:
 
-```powershell
-wsl -l -v
-wsl --install -d Ubuntu
-```
-
-## 현재 상태
-
-Alpha installer pack입니다.
-
-지원:
-- macOS script installer
-- Windows WSL2-first script installer
-- Electron wrapper skeleton
-- GitHub Actions build workflow
-- Secret-free FMG profile
-
-다음 단계:
 - Apple Developer ID signing/notarization
-- Windows code signing
+- Windows Authenticode signing
 - auto-update
 - richer in-app setup status
+- Windows 실제 설치 환경별 QA matrix 확대
+- Paperclip workflow diagnostics UI 통합 강화
