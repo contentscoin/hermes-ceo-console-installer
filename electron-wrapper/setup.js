@@ -11,9 +11,11 @@ const setupGuide = [
   '2. SmartScreen 또는 권한 요청이 나오면 실행/허용을 선택하세요.',
   '3. WSL2/Ubuntu가 없으면 installer가 Ubuntu 설치를 자동으로 시도합니다. 관리자 권한/재부팅 요청이 나오면 허용하세요.',
   '4. Ubuntu 첫 실행 시에는 Ubuntu 사용자 이름과 비밀번호를 한 번 만들어야 합니다.',
-  '5. Codex/Telegram/Paperclip 설정 질문은 여기서 기본적으로 건너뜁니다. WebUI가 열린 뒤 설정에서 진행하세요.',
-  '6. 완료 메시지가 나오면 이 앱으로 돌아와 “다시 확인”을 누르세요.',
-  '7. 오류가 보이면 CMD 창을 닫지 말고 마지막 오류 줄과 로그 경로를 확인하세요.',
+  '5. Ubuntu 설치/초기화 뒤 Setup Wizard를 한 번 더 누르면 Hermes Agent/WebUI 설치 단계로 이어지는 것이 정상입니다.',
+  '6. Hermes 설치 단계는 몇 분 걸릴 수 있습니다. CMD/PowerShell 창을 닫지 말고 Done/완료 메시지까지 기다리세요.',
+  '7. Codex/Telegram/Paperclip 설정 질문은 여기서 기본적으로 건너뜁니다. WebUI가 열린 뒤 설정에서 진행하세요.',
+  '8. 완료 메시지가 나오면 이 앱으로 돌아와 “다시 확인”을 누르세요.',
+  '9. 오류가 보이면 CMD 창을 닫지 말고 마지막 오류 줄과 로그 경로를 확인하세요.',
 ].join('\n');
 function api(){
   if(window.hermesDesktop) return window.hermesDesktop;
@@ -59,7 +61,7 @@ $('setup').onclick = async () => {
   if(result && result.started){
     const modeText = result.mode === 'windows-cmd-launcher' ? '명령 프롬프트 창' : (result.mode === 'windows-visible-powershell' ? 'PowerShell 창' : '터미널');
     const manual = result.launcher ? `\n\n새 창이 보이지 않으면 아래 파일을 직접 더블클릭하세요:\n${result.launcher}` : '';
-    setStatus(`Setup Wizard를 ${modeText}으로 열었습니다.\n\n${setupGuide}\n\n새 창이 보이지 않으면 작업표시줄/보안 경고를 확인하세요.\n\nInstaller: ${result.script || '(unknown)'}${manual}\n\n설치가 끝나면 “다시 확인”을 누르세요.`);
+    setStatus(`Setup Wizard를 ${modeText}으로 열었습니다.\n\n${setupGuide}\n\n진행 흐름: WSL/Ubuntu 준비 → Hermes Agent 설치/업데이트 → FMG WebUI 설치/시작 → 다시 확인.\nUbuntu 설치 뒤 한 번 더 Setup을 누르면 Hermes 설치로 넘어가는 것이 정상입니다.\n\n새 창이 보이지 않으면 작업표시줄/보안 경고를 확인하세요.\n\nInstaller: ${result.script || '(unknown)'}${manual}\n\n설치가 끝나면 “다시 확인”을 누르세요.`);
   } else {
     const manual = result && result.launcher ? `\n직접 실행 파일: ${result.launcher}` : '';
     setStatus(`Setup Wizard를 시작하지 못했습니다.\n원인: ${(result && result.error) || 'unknown'}${result && result.detail ? `\n상세: ${result.detail}` : ''}\nInstaller: ${(result && result.script) || '(unknown)'}${manual}\n로그 또는 설치파일 위치를 확인하세요.`);

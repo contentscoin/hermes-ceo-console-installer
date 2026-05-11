@@ -6,24 +6,24 @@ Hermes CEO Console Installer Pack은 Hermes Agent, Hermes WebUI, Telegram bot �
 
 ## 다운로드
 
-현재 alpha release는 `v0.1.0-alpha.5`입니다. GitHub의 `/releases/download/` 주소는 폴더 페이지가 아니므로, 반드시 아래처럼 `태그명/파일명`까지 포함된 전체 링크로 다운로드하세요.
+현재 alpha release는 `v0.1.0-alpha.6`입니다. GitHub의 `/releases/download/` 주소는 폴더 페이지가 아니므로, 반드시 아래처럼 `태그명/파일명`까지 포함된 전체 링크로 다운로드하세요.
 
 Release 페이지:
-https://github.com/contentscoin/hermes-ceo-console-installer/releases/tag/v0.1.0-alpha.5
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/tag/v0.1.0-alpha.6
 
 직접 다운로드:
 
-- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-macos-arm64.dmg
-- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-macos-arm64.dmg.sha256
-- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/Hermes.CEO.Console.Setup.0.1.0-alpha.5.exe
-- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/windows-exe.sha256
-- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip
-- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip.sha256
+- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/hermes-ceo-console-macos-arm64.dmg
+- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/hermes-ceo-console-macos-arm64.dmg.sha256
+- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/Hermes.CEO.Console.Setup.0.1.0-alpha.6.exe
+- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/windows-exe.sha256
+- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/hermes-ceo-console-installer-pack.zip
+- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/hermes-ceo-console-installer-pack.zip.sha256
 
 터미널에서 macOS DMG를 바로 받으려면:
 
 ```bash
-curl -L -o ~/Downloads/hermes-ceo-console-macos-arm64.dmg https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-macos-arm64.dmg
+curl -L -o ~/Downloads/hermes-ceo-console-macos-arm64.dmg https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/hermes-ceo-console-macos-arm64.dmg
 ```
 
 Release 자동 빌드가 아직 끝나지 않았거나 alpha 테스트 중이면 zip pack을 받아 아래 스크립트 방식으로 설치하세요.
@@ -51,7 +51,7 @@ Release 자동 빌드가 아직 끝나지 않았거나 alpha 테스트 중이면
 ### 방법 B: script pack
 
 ```bash
-curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip
+curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/hermes-ceo-console-installer-pack.zip
 unzip hermes-ceo-console-installer-pack.zip -d hermes-ceo-console-installer
 cd hermes-ceo-console-installer
 chmod +x install-macos.sh scripts/first_run_wizard.py
@@ -90,10 +90,12 @@ CMD/PowerShell 창이 열리면 이렇게 진행하세요.
 2. Windows SmartScreen, 보안 경고, 권한 요청이 나오면 `실행`, `허용`, 또는 `추가 정보 > 실행`을 선택합니다.
 3. WSL2 또는 Ubuntu 설치가 필요하다고 나오면 화면 안내대로 진행합니다. Windows 재시작을 요구하면 재시작한 뒤 Hermes CEO Console을 다시 열고 `처음 설치 / Setup Wizard`를 다시 누릅니다.
 4. Ubuntu가 처음 열리면 Ubuntu 사용자 이름과 비밀번호를 한 번 만듭니다. 입력 중 비밀번호가 화면에 보이지 않아도 정상입니다.
-5. FMG 제공 WebUI가 `contentscoin/hermes-for-web`에서 설치 또는 업데이트됩니다. 기존에 초기/공개 원본 WebUI가 설치돼 있어도 이 저장소 기준으로 맞춥니다.
-6. Codex login, Telegram token, Paperclip 설정은 CMD에서 기본적으로 건너뜁니다. WebUI가 먼저 열리면 앱 안에서 필요한 항목을 설정합니다.
-7. 완료 메시지가 나오면 Hermes CEO Console 앱으로 돌아가 `다시 확인`을 누릅니다. 정상 설치되면 WebUI가 `http://127.0.0.1:8788`로 열립니다.
-8. 오류가 나오면 CMD/PowerShell 창을 닫지 말고 마지막 오류 줄과 `%USERPROFILE%\.hermes\logs\hermes-ceo-console.log` 로그 경로를 확인합니다.
+5. Ubuntu 설치/초기화가 끝난 뒤 `처음 설치 / Setup Wizard`를 한 번 더 누르면 Hermes Agent 설치 단계로 넘어갑니다. 이것은 정상 흐름입니다.
+6. Hermes Agent/WebUI 설치 단계는 몇 분 걸릴 수 있습니다. `Install/update Hermes runtime inside WSL` 또는 `Installing Hermes Agent` 같은 문구가 보이면 그대로 기다리세요.
+7. FMG 제공 WebUI가 `contentscoin/hermes-for-web`에서 설치 또는 업데이트됩니다. 기존에 초기/공개 원본 WebUI가 설치돼 있어도 이 저장소 기준으로 맞춥니다.
+8. Codex login, Telegram token, Paperclip 설정은 CMD에서 기본적으로 건너뜁니다. WebUI가 먼저 열리면 앱 안에서 필요한 항목을 설정합니다.
+9. 완료 메시지가 나오면 Hermes CEO Console 앱으로 돌아가 `다시 확인`을 누릅니다. 정상 설치되면 WebUI가 `http://127.0.0.1:8788`로 열립니다.
+10. 오류가 나오면 CMD/PowerShell 창을 닫지 말고 마지막 오류 줄과 `%USERPROFILE%\.hermes\logs\hermes-ceo-console.log` 로그 경로를 확인합니다.
 
 ### 방법 B: PowerShell script pack
 
@@ -101,7 +103,7 @@ PowerShell을 열고:
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
+Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.6/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
 Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
 cd .\hermes-ceo-console-installer
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipPaperclip -SkipOpenCrab -SkipHermesUpdate
@@ -113,7 +115,7 @@ WSL2가 없다면 관리자 PowerShell에서 먼저:
 wsl --install -d Ubuntu
 ```
 
-그 뒤 Windows 재시작 또는 Ubuntu 첫 실행을 완료하고 installer를 다시 실행하세요. Windows 설치가 중간에 멈추거나 바로 닫히면 대부분 아래 2가지 중 하나입니다.
+그 뒤 Windows 재시작 또는 Ubuntu 첫 실행을 완료하고 installer를 다시 실행하세요. Ubuntu가 이미 준비되어 있다면 다음 실행에서 Hermes Agent/WebUI 설치 단계로 이어지는 것이 정상입니다. Windows 설치가 중간에 멈추거나 바로 닫히면 대부분 아래 2가지 중 하나입니다.
 
 ```powershell
 wsl -l -v

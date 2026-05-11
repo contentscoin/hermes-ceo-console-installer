@@ -33,6 +33,7 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
 function Step($m){ Write-Host "`n==> $m" -ForegroundColor Cyan }
 function Has($cmd){ return [bool](Get-Command $cmd -ErrorAction SilentlyContinue) }
 function Quote-BashArg([string]$s){ return "'" + ($s.Replace("'", "'`"'`"'")) + "'" }
+function Guide($m){ Write-Host "  -> $m" -ForegroundColor Yellow }
 function Test-Administrator {
   $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
   $principal = New-Object Security.Principal.WindowsPrincipal($identity)
@@ -87,6 +88,9 @@ function Install-WslDistroIfNeeded([string]$Name){
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Step "Check WSL2 and Linux distro"
+Guide "Stage 1/4: checking Windows WSL and the $Distro Linux distribution."
+Guide "If $Distro was just installed, Windows may ask you to reboot or open $Distro once to create a Linux username/password."
+Guide "After that, pressing Setup Wizard again is expected; it continues to the Hermes runtime install."
 Install-WslDistroIfNeeded $Distro
 try { wsl -l -v } catch { Write-Warning "Could not list WSL distros. Open $Distro once, finish Linux user setup, then rerun."; exit 1 }
 try {
@@ -98,6 +102,7 @@ try {
 }
 
 Step "Check WSL prerequisites"
+Guide "Stage 2/4: checking python3, git, and curl inside $Distro. You may be asked for the Ubuntu password for sudo."
 $bootstrap = @'
 set -e
 missing=""
@@ -119,6 +124,10 @@ fi
 wsl -d $Distro -- bash -lc $bootstrap
 
 Step "Install/update Hermes runtime inside WSL"
+Guide "Stage 3/4: installing/updating Hermes Agent and the FMG WebUI inside $Distro."
+Guide "This is the step you saw after pressing Setup again. It is normal after Ubuntu is ready."
+Guide "Keep this PowerShell window open until it prints Done. First install can take several minutes."
+Guide "Quick setup skips Codex, Telegram, and Paperclip prompts; configure them later in WebUI settings."
 $wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl")
 if($Yes){ $wizardArgs += "--yes" }
 if($NoStart){ $wizardArgs += "--no-start" }
@@ -203,6 +212,7 @@ $shortcut.IconLocation = "powershell.exe,0"
 $shortcut.Save()
 
 Step "Verify WebUI from Windows"
+Guide "Stage 4/4: starting WebUI and checking http://127.0.0.1:$Port/health from Windows."
 $healthy = $false
 for($i=0; $i -lt 30; $i++){
   try {
