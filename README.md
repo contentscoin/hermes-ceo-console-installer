@@ -6,24 +6,24 @@ Hermes CEO Console Installer Pack은 Hermes Agent, Hermes WebUI, Telegram bot �
 
 ## 다운로드
 
-현재 alpha release는 `v0.1.0-alpha.4`입니다. GitHub의 `/releases/download/` 주소는 폴더 페이지가 아니므로, 반드시 아래처럼 `태그명/파일명`까지 포함된 전체 링크로 다운로드하세요.
+현재 alpha release는 `v0.1.0-alpha.5`입니다. GitHub의 `/releases/download/` 주소는 폴더 페이지가 아니므로, 반드시 아래처럼 `태그명/파일명`까지 포함된 전체 링크로 다운로드하세요.
 
 Release 페이지:
-https://github.com/contentscoin/hermes-ceo-console-installer/releases/tag/v0.1.0-alpha.4
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/tag/v0.1.0-alpha.5
 
 직접 다운로드:
 
-- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/hermes-ceo-console-macos-arm64.dmg
-- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/hermes-ceo-console-macos-arm64.dmg.sha256
-- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/Hermes.CEO.Console.Setup.0.1.0-alpha.4.exe
-- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/windows-exe.sha256
-- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/hermes-ceo-console-installer-pack.zip
-- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/hermes-ceo-console-installer-pack.zip.sha256
+- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-macos-arm64.dmg
+- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-macos-arm64.dmg.sha256
+- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/Hermes.CEO.Console.Setup.0.1.0-alpha.5.exe
+- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/windows-exe.sha256
+- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip
+- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip.sha256
 
 터미널에서 macOS DMG를 바로 받으려면:
 
 ```bash
-curl -L -o ~/Downloads/hermes-ceo-console-macos-arm64.dmg https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/hermes-ceo-console-macos-arm64.dmg
+curl -L -o ~/Downloads/hermes-ceo-console-macos-arm64.dmg https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-macos-arm64.dmg
 ```
 
 Release 자동 빌드가 아직 끝나지 않았거나 alpha 테스트 중이면 zip pack을 받아 아래 스크립트 방식으로 설치하세요.
@@ -51,7 +51,7 @@ Release 자동 빌드가 아직 끝나지 않았거나 alpha 테스트 중이면
 ### 방법 B: script pack
 
 ```bash
-curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/hermes-ceo-console-installer-pack.zip
+curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip
 unzip hermes-ceo-console-installer-pack.zip -d hermes-ceo-console-installer
 cd hermes-ceo-console-installer
 chmod +x install-macos.sh scripts/first_run_wizard.py
@@ -101,7 +101,7 @@ PowerShell을 열고:
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.4/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
+Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.5/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
 Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
 cd .\hermes-ceo-console-installer
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipPaperclip -SkipOpenCrab -SkipHermesUpdate

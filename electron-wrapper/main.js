@@ -5,6 +5,7 @@ const fs = require('fs');
 const http = require('http');
 
 const port = process.env.HERMES_WEBUI_PORT || '8788';
+const wslDistro = process.env.HERMES_WSL_DISTRO || 'Ubuntu';
 const webUrl = `http://127.0.0.1:${port}`;
 let win = null;
 let child = null;
@@ -57,7 +58,7 @@ function startExistingRuntime(){
   const logFd = ensureLogFd();
   if(process.platform === 'win32'){
     const command = `cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh ${port} >> ~/.hermes/logs/hermes-ceo-console.log 2>&1`;
-    child = spawn('wsl.exe', ['bash', '-lc', command], {stdio:['ignore', logFd, logFd], detached:true});
+    child = spawn('wsl.exe', ['-d', wslDistro, '--', 'bash', '-lc', command], {stdio:['ignore', logFd, logFd], detached:true});
   } else {
     const script = fs.existsSync(path.join(dir, 'start.sh')) ? './start.sh' : null;
     const args = script ? [script, port] : [process.env.PYTHON || 'python3', 'server.py', '--port', port];
@@ -87,10 +88,8 @@ function writeWindowsSetupLauncher(script){
     'echo.',
     'echo [How to proceed]',
     'echo 1. If Windows asks for permission or shows SmartScreen, choose Run/Allow.',
-    'echo 2. If WSL2 or Ubuntu is missing, install it first:',
-    'echo    - Open PowerShell as Administrator',
-    'echo    - Run: wsl --install -d Ubuntu',
-    'echo    - Reboot if Windows asks, then open Ubuntu once',
+    'echo 2. If WSL2 or Ubuntu is missing, this installer will try to install Ubuntu automatically.',
+    'echo    If Windows asks for Administrator permission or a reboot, allow it and rerun setup.',
     'echo 3. If Ubuntu opens for the first time, create the Ubuntu username/password,',
     'echo    then return here and run the setup again if needed.',
     'echo 4. The installer now skips Codex/Telegram/Paperclip prompts by default.',
@@ -103,7 +102,7 @@ function writeWindowsSetupLauncher(script){
     'echo - App log: %USERPROFILE%\\.hermes\\logs\\hermes-ceo-console.log',
     'echo - You can rerun this file by double-clicking it again.',
     'echo.',
-    `powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File ${quoteForCmd(script)} -Port ${quoteForCmd(port)} -Yes -SkipCodex -SkipTelegram -SkipPaperclip -SkipHermesUpdate`,
+    `powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File ${quoteForCmd(script)} -Port ${quoteForCmd(port)} -Distro ${quoteForCmd(wslDistro)} -Yes -SkipCodex -SkipTelegram -SkipPaperclip -SkipHermesUpdate`,
     'set EXITCODE=%ERRORLEVEL%',
     'if not "%EXITCODE%"=="0" (',
     '  echo.',
