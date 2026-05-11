@@ -49,7 +49,18 @@ try {
   exit 1
 }
 
-Start-Process wsl.exe -ArgumentList "-d $Distro -- bash -lc 'mkdir -p ~/.hermes/logs; cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh $Port >> ~/.hermes/logs/hermes-ceo-console.log 2>&1'" -WindowStyle Hidden
+$StartCommand = @'
+mkdir -p ~/.hermes/logs
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null
+if [ -d ~/.hermes/webui/workspace/paperclip ]; then
+  cd ~/.hermes/webui/workspace/paperclip
+  nohup pnpm paperclipai run --instance default >> ~/.hermes/logs/paperclip-fmg.log 2>&1 &
+fi
+cd ~/.hermes/webui/workspace/hermes-for-web
+./start.sh __PORT__ >> ~/.hermes/logs/hermes-ceo-console.log 2>&1
+'@.Replace('__PORT__', [string]$Port)
+Start-Process wsl.exe -ArgumentList @('-d', $Distro, '--', 'bash', '-lc', $StartCommand) -WindowStyle Hidden
 
 for($i=0; $i -lt 30; $i++){
   Start-Sleep -Seconds 1

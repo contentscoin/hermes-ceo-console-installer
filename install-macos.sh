@@ -100,6 +100,12 @@ if curl -fsS "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then
   open "http://127.0.0.1:$PORT"
   exit 0
 fi
+mkdir -p "\$HOME/.hermes/logs"
+if [[ -d "\$HOME/.hermes/webui/workspace/paperclip" ]]; then
+  export NVM_DIR="\$HOME/.nvm"
+  [[ -s "\$NVM_DIR/nvm.sh" ]] && . "\$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null || true
+  (cd "\$HOME/.hermes/webui/workspace/paperclip" && nohup pnpm paperclipai run --instance default >> "\$HOME/.hermes/logs/paperclip-fmg.log" 2>&1 &)
+fi
 ./start.sh "$PORT" > "\$HOME/.hermes/logs/hermes-ceo-console.log" 2>&1 &
 sleep 2
 open "http://127.0.0.1:$PORT"

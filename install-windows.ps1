@@ -4,6 +4,10 @@ param(
   [string]$RepoUrl = "https://github.com/contentscoin/hermes-for-web.git",
   [string]$RepoRef = "main",
   [string]$ExpectedWebUICommit = "cef6c20c93ba80f4682aa6c6f470055b18ffcbf9",
+  [string]$PaperclipRepoUrl = "https://github.com/contentscoin/paperclip.git",
+  [string]$PaperclipRepoRef = "live/opencrab-default-dag-20260510",
+  [string]$ExpectedPaperclipCommit = "72bb0505a09d5b789a8a88c6cbd26c024b2e4215",
+  [int]$PaperclipPort = 3100,
   [string]$Distro = "Ubuntu",
   [switch]$NoStart,
   [switch]$SkipCodex,
@@ -25,6 +29,10 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
   -RepoRef main     WebUI repo ref/branch
   -ExpectedWebUICommit SHA  expected FMG WebUI commit
   -Distro Ubuntu    WSL Linux distro to install/use
+  -PaperclipRepoUrl URL       FMG Paperclip repo URL
+  -PaperclipRepoRef REF       FMG Paperclip branch/ref
+  -ExpectedPaperclipCommit SHA expected FMG Paperclip commit
+  -PaperclipPort 3100         Paperclip local port
   -NoStart          install only
   -SkipCodex        skip Codex login step
   -SkipTelegram     skip Telegram token prompt
@@ -129,12 +137,12 @@ fi
 wsl -d $Distro -- bash -lc $bootstrap
 
 Step "Install/update Hermes runtime inside WSL"
-Guide "Stage 3/4: checking/updating Hermes Agent and the FMG WebUI inside $Distro."
+Guide "Stage 3/4: checking/updating Hermes Agent, FMG WebUI, and FMG-customized Paperclip inside $Distro."
 Guide "This is the step you saw after pressing Setup again. It is normal after Ubuntu is ready."
 Guide "Keep this PowerShell window open until it prints Done. First install can take several minutes."
-Guide "Quick setup skips Codex, Telegram, and Paperclip prompts; configure them later in WebUI settings."
+Guide "Quick setup skips Codex/Telegram secret prompts, but installs/starts FMG-customized Paperclip locally."
 Guide "Note: hermes --version may still print v0.13.0; the wizard also prints Hermes source and WebUI commits."
-$wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl", "--repo-ref", "$RepoRef", "--expected-webui-commit", "$ExpectedWebUICommit")
+$wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl", "--repo-ref", "$RepoRef", "--expected-webui-commit", "$ExpectedWebUICommit", "--paperclip-repo", "$PaperclipRepoUrl", "--paperclip-repo-ref", "$PaperclipRepoRef", "--expected-paperclip-commit", "$ExpectedPaperclipCommit", "--paperclip-port", "$PaperclipPort")
 if($Yes){ $wizardArgs += "--yes" }
 if($NoStart){ $wizardArgs += "--no-start" }
 if($SkipCodex){ $wizardArgs += "--skip-codex" }
@@ -195,7 +203,18 @@ try { wsl.exe -d `$Distro -- bash -lc "printf wsl-ready" | Out-Null } catch {
   Read-Host "Press Enter to close"
   exit 1
 }
-Start-Process wsl.exe -ArgumentList "-d `$Distro -- bash -lc 'mkdir -p ~/.hermes/logs; cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh $Port >> ~/.hermes/logs/hermes-ceo-console.log 2>&1'" -WindowStyle Hidden
+`$StartCommand = @'
+mkdir -p ~/.hermes/logs
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null
+if [ -d ~/.hermes/webui/workspace/paperclip ]; then
+  cd ~/.hermes/webui/workspace/paperclip
+  nohup pnpm paperclipai run --instance default >> ~/.hermes/logs/paperclip-fmg.log 2>&1 &
+fi
+cd ~/.hermes/webui/workspace/hermes-for-web
+./start.sh $Port >> ~/.hermes/logs/hermes-ceo-console.log 2>&1
+'@
+Start-Process wsl.exe -ArgumentList @('-d', `$Distro, '--', 'bash', '-lc', `$StartCommand) -WindowStyle Hidden
 for(`$i=0; `$i -lt 30; `$i++){
   Start-Sleep -Seconds 1
   if(Test-WebUIHealth){

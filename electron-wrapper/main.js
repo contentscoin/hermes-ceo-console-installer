@@ -57,7 +57,7 @@ function startExistingRuntime(){
   const dir = webuiDir();
   const logFd = ensureLogFd();
   if(process.platform === 'win32'){
-    const command = `cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh ${port} >> ~/.hermes/logs/hermes-ceo-console.log 2>&1`;
+    const command = `mkdir -p ~/.hermes/logs; export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null; if [ -d ~/.hermes/webui/workspace/paperclip ]; then cd ~/.hermes/webui/workspace/paperclip && nohup pnpm paperclipai run --instance default >> ~/.hermes/logs/paperclip-fmg.log 2>&1 & fi; cd ~/.hermes/webui/workspace/hermes-for-web && ./start.sh ${port} >> ~/.hermes/logs/hermes-ceo-console.log 2>&1`;
     child = spawn('wsl.exe', ['-d', wslDistro, '--', 'bash', '-lc', command], {stdio:['ignore', logFd, logFd], detached:true});
   } else {
     const script = fs.existsSync(path.join(dir, 'start.sh')) ? './start.sh' : null;
@@ -80,10 +80,10 @@ function writeWindowsSetupLauncher(script){
     'echo Hermes CEO Console Setup',
     'echo.',
     'echo [What this window does]',
-    'echo This command window installs or updates the FMG-provided Hermes WebUI runtime,',
-    `echo then starts the WebUI at http://127.0.0.1:${port}.`,
-    'echo It uses quick setup by default: Codex, Telegram, and Paperclip are skipped here',
-    'echo and can be configured later from the WebUI/settings flow.',
+    'echo This command window installs or updates the FMG-provided Hermes WebUI and Paperclip runtimes,',
+    `echo then starts WebUI at http://127.0.0.1:${port} and Paperclip at http://127.0.0.1:3100.`,
+    'echo It uses quick setup by default: Codex and Telegram prompts are skipped here;',
+    'echo FMG-customized Paperclip is installed/started locally so the Paperclip tab works.',
     'echo Do not close this window until the setup says it is complete.',
     'echo.',
     'echo [How to proceed]',
@@ -96,8 +96,8 @@ function writeWindowsSetupLauncher(script){
     'echo    This can take several minutes. Keep this window open until it prints Done.',
     'echo    Note: hermes --version may still say v0.13.0 because that is the current',
     'echo    upstream package version; the installer also prints source/WebUI commits.',
-    'echo 5. The installer skips Codex/Telegram/Paperclip prompts by default.',
-    'echo    Open the WebUI first, then configure integrations later from settings.',
+    'echo 5. The installer skips Codex/Telegram secret prompts by default.',
+    'echo    It does install and start FMG-customized Paperclip locally.',
     'echo 6. When the setup finishes, go back to the Hermes CEO Console app and press',
     `echo    Retry / Check Again. The app should open http://127.0.0.1:${port}.`,
     'echo.',
@@ -106,7 +106,7 @@ function writeWindowsSetupLauncher(script){
     'echo - App log: %USERPROFILE%\\.hermes\\logs\\hermes-ceo-console.log',
     'echo - You can rerun this file by double-clicking it again.',
     'echo.',
-    `powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File ${quoteForCmd(script)} -Port ${quoteForCmd(port)} -Distro ${quoteForCmd(wslDistro)} -Yes -SkipCodex -SkipTelegram -SkipPaperclip`,
+    `powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File ${quoteForCmd(script)} -Port ${quoteForCmd(port)} -Distro ${quoteForCmd(wslDistro)} -Yes -SkipCodex -SkipTelegram`,
     'set EXITCODE=%ERRORLEVEL%',
     'if not "%EXITCODE%"=="0" (',
     '  echo.',

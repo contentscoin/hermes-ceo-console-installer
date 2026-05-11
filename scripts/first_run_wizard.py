@@ -16,6 +16,12 @@ DEFAULT_REPO_REF = "main"
 # with contentscoin/hermes-for-web main when cutting installer releases.
 DEFAULT_EXPECTED_WEBUI_COMMIT = "cef6c20c93ba80f4682aa6c6f470055b18ffcbf9"
 DEFAULT_INSTALL_DIR = HERMES / "webui" / "workspace" / "hermes-for-web"
+DEFAULT_PAPERCLIP_REPO = "https://github.com/contentscoin/paperclip.git"
+DEFAULT_PAPERCLIP_REPO_REF = "live/opencrab-default-dag-20260510"
+# FMG-customized Paperclip commit with Live Workflow DAG, OpenCrab plugin, and legacy issue blank-page fix.
+DEFAULT_EXPECTED_PAPERCLIP_COMMIT = "72bb0505a09d5b789a8a88c6cbd26c024b2e4215"
+DEFAULT_PAPERCLIP_INSTALL_DIR = HERMES / "webui" / "workspace" / "paperclip"
+DEFAULT_PAPERCLIP_PORT = 3100
 
 
 def run(cmd, check=False, capture=True, shell=False):
@@ -145,6 +151,10 @@ def status(port, install_dir):
         'telegram': 'configured' if env.get('TELEGRAM_BOT_TOKEN') else 'missing',
         'paperclip': 'configured' if env.get('PAPERCLIP_BASE_URL') and env.get('PAPERCLIP_DEFAULT_COMPANY') else 'missing',
         'paperclip_web_url': env.get('PAPERCLIP_WEB_URL') or 'http://127.0.0.1:3100',
+        'paperclip_dir': str(DEFAULT_PAPERCLIP_INSTALL_DIR),
+        'paperclip_dir_exists': DEFAULT_PAPERCLIP_INSTALL_DIR.exists(),
+        'paperclip_health': paperclip_health(DEFAULT_PAPERCLIP_PORT),
+        'paperclip_expected_commit': DEFAULT_EXPECTED_PAPERCLIP_COMMIT,
         'paperclip_workflow_control': 'available' if (Path(__file__).resolve().parent / 'paperclip_workflow_control.py').exists() else 'missing',
         'opencrab': 'configured' if opencrab_configured() else 'missing',
         'codex': 'installed_login_unverified' if codex_ok else 'missing',
@@ -253,11 +263,153 @@ def clone_or_update(repo, install_dir, repo_ref=DEFAULT_REPO_REF, expected_commi
         (install_dir/'start.sh').chmod(0o755)
 
 
+def http_health(url, path='/api/health'):
+    try:
+        with urllib.request.urlopen(url.rstrip('/') + path, timeout=3) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
+
+def paperclip_health(port=DEFAULT_PAPERCLIP_PORT):
+    return http_health(f'http://127.0.0.1:{port}', '/api/health')
+
+
+def node_major():
+    rc, out = run(['node', '--version'])
+    if rc != 0:
+        return 0
+    s = out.strip().lstrip('v')
+    try:
+        return int(s.split('.', 1)[0])
+    except Exception:
+        return 0
+
+
+def bash_login(cmd):
+    return run(['bash', '-lc', cmd])
+
+
+def ensure_node20_and_pnpm():
+    if node_major() >= 20 and which('pnpm'):
+        return
+    print('Paperclip runtime: installing/checking Node.js 20 and pnpm 9.15.4 via nvm/corepack if needed.')
+    cmd = """
+set -e
+export NVM_DIR="$HOME/.nvm"
+if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+fi
+. "$NVM_DIR/nvm.sh"
+nvm install 20
+nvm alias default 20
+nvm use 20
+corepack enable
+corepack prepare pnpm@9.15.4 --activate
+node --version
+pnpm --version
+"""
+    rc, out = bash_login(cmd)
+    print(out)
+    if rc != 0:
+        raise SystemExit('Paperclip runtime prerequisite install failed')
+
+
+def clone_or_update_git_project(label, repo, install_dir, repo_ref, expected_commit):
+    install_dir.parent.mkdir(parents=True, exist_ok=True)
+    if (install_dir / '.git').exists():
+        print(f'Updating {label}: {install_dir}')
+        rc, out = run(['git', '-C', str(install_dir), 'remote', 'get-url', 'origin'])
+        if rc != 0 or out.strip() != repo:
+            print(f'Switching {label} source to: {repo}')
+            rc, out = run(['git', '-C', str(install_dir), 'remote', 'set-url', 'origin', repo])
+            if rc != 0:
+                print(out)
+                raise SystemExit(f'{label} remote update failed')
+        rc, out = run(['git', '-C', str(install_dir), 'fetch', '--prune', 'origin', repo_ref])
+        print(out)
+        if rc != 0:
+            raise SystemExit(f'{label} fetch failed')
+        target = f'origin/{repo_ref}'
+        if repo_ref in ('main', 'master'):
+            rc, out = run(['git', '-C', str(install_dir), 'checkout', '-B', repo_ref, target])
+        else:
+            local_branch = repo_ref.replace('/', '-')
+            rc, out = run(['git', '-C', str(install_dir), 'checkout', '-B', local_branch, target])
+        print(out)
+        if rc != 0:
+            raise SystemExit(f'{label} checkout failed')
+        rc, out = run(['git', '-C', str(install_dir), 'reset', '--hard', target])
+        print(out)
+        if rc != 0:
+            raise SystemExit(f'{label} reset failed')
+    else:
+        print(f'Cloning {label}: {repo} ({repo_ref}) -> {install_dir}')
+        rc, out = run(['git', 'clone', '--branch', repo_ref, repo, str(install_dir)])
+        print(out)
+        if rc != 0:
+            raise SystemExit(f'{label} clone failed')
+    rc, head = run(['git', '-C', str(install_dir), 'rev-parse', 'HEAD'])
+    if rc == 0:
+        print(f'Installed {label} commit: {head}')
+        if expected_commit and head.strip() != expected_commit:
+            raise SystemExit(f'Installed {label} commit {head.strip()} does not match expected FMG commit {expected_commit}.')
+    return install_dir
+
+
+def install_or_update_paperclip(args):
+    if args.skip_paperclip:
+        print('Paperclip install/update: skipped by installer flag')
+        return
+    install_dir = Path(os.path.expanduser(args.paperclip_install_dir))
+    clone_or_update_git_project('FMG-customized Paperclip', args.paperclip_repo, install_dir, args.paperclip_repo_ref, args.expected_paperclip_commit)
+    ensure_node20_and_pnpm()
+    print('Paperclip runtime: installing dependencies with pnpm. First run can take several minutes.')
+    cmd = f"""
+set -e
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null
+cd {str(install_dir)!r}
+corepack enable >/dev/null 2>&1 || true
+corepack prepare pnpm@9.15.4 --activate >/dev/null 2>&1 || true
+pnpm install --frozen-lockfile
+"""
+    rc, out = bash_login(cmd)
+    print(out)
+    if rc != 0:
+        raise SystemExit('Paperclip dependency install failed')
+    if not args.no_start:
+        start_paperclip(install_dir, args.paperclip_port)
+
+
+def start_paperclip(install_dir, port=DEFAULT_PAPERCLIP_PORT):
+    if paperclip_health(port):
+        print(f'Paperclip already healthy: http://127.0.0.1:{port}')
+        return
+    log = HERMES / 'logs' / 'paperclip-fmg.log'
+    log.parent.mkdir(parents=True, exist_ok=True)
+    command = f"""
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null
+cd {str(install_dir)!r}
+exec pnpm paperclipai run --instance default
+"""
+    print('Starting FMG Paperclip...')
+    with log.open('ab') as f:
+        subprocess.Popen(['bash', '-lc', command], stdout=f, stderr=subprocess.STDOUT)
+    for _ in range(45):
+        if paperclip_health(port):
+            print(f'Paperclip healthy: http://127.0.0.1:{port}')
+            return
+        time.sleep(1)
+    print(f'Paperclip health check failed. See log: {log}')
+
+
 def configure_integrations(args):
     updates = {}
     if not args.skip_paperclip:
         web_url = ask('Paperclip web URL for WebUI live tab', 'http://127.0.0.1:3100', yes=args.yes)
-        base = ask('Paperclip API/base URL for MCP work (blank to skip)', '', yes=args.yes)
+        base = ask('Paperclip API/base URL for MCP work', 'http://127.0.0.1:3100', yes=args.yes)
         company = ask('Paperclip default company', 'FMG', yes=args.yes)
         token = '' if args.yes else ask('Paperclip API token if required (blank to skip)', '', secret=True)
         if web_url: updates['PAPERCLIP_WEB_URL'] = web_url
@@ -315,6 +467,11 @@ def main():
     ap.add_argument('--repo-ref', default=DEFAULT_REPO_REF)
     ap.add_argument('--expected-webui-commit', default=DEFAULT_EXPECTED_WEBUI_COMMIT)
     ap.add_argument('--install-dir', default=str(DEFAULT_INSTALL_DIR))
+    ap.add_argument('--paperclip-repo', default=DEFAULT_PAPERCLIP_REPO)
+    ap.add_argument('--paperclip-repo-ref', default=DEFAULT_PAPERCLIP_REPO_REF)
+    ap.add_argument('--expected-paperclip-commit', default=DEFAULT_EXPECTED_PAPERCLIP_COMMIT)
+    ap.add_argument('--paperclip-install-dir', default=str(DEFAULT_PAPERCLIP_INSTALL_DIR))
+    ap.add_argument('--paperclip-port', type=int, default=DEFAULT_PAPERCLIP_PORT)
     ap.add_argument('--skip-codex', action='store_true')
     ap.add_argument('--skip-telegram', action='store_true')
     ap.add_argument('--skip-paperclip', action='store_true')
@@ -331,6 +488,7 @@ def main():
     install_hermes_if_missing(args.yes, args.skip_hermes_update)
     clone_or_update(args.repo, install_dir, args.repo_ref, args.expected_webui_commit)
     configure_integrations(args)
+    install_or_update_paperclip(args)
     configure_opencrab_mcp(args)
     codex_flow(args.skip_codex, args.yes)
     if which('hermes'):

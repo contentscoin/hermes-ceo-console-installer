@@ -1,6 +1,6 @@
 {
   "productName": "Hermes CEO Console",
-  "version": "0.1.0-alpha.8",
+  "version": "0.1.0-alpha.9",
   "appId": "com.fmg.hermes-ceo-console",
   "defaultPort": 8788,
   "primaryRepoUrl": "https://github.com/contentscoin/hermes-for-web.git",
@@ -16,8 +16,13 @@
       "autoSend": false
     },
     "paperclip": {
-      "mode": "user-config",
-      "autoReflect": false
+      "mode": "local-fmg-source-install",
+      "autoReflect": false,
+      "installDefault": true,
+      "repoUrl": "https://github.com/contentscoin/paperclip.git",
+      "repoRef": "live/opencrab-default-dag-20260510",
+      "expectedCommit": "72bb0505a09d5b789a8a88c6cbd26c024b2e4215",
+      "webUrl": "http://127.0.0.1:3100"
     },
     "paperclipWorkflowControl": {
       "mode": "local-script",
@@ -34,5 +39,10 @@
       "mode": "oauth-device-login",
       "silentLogin": false
     }
-  }
+  },
+  "paperclipRepoUrl": "https://github.com/contentscoin/paperclip.git",
+  "paperclipRepoRef": "live/opencrab-default-dag-20260510",
+  "expectedPaperclipCommit": "72bb0505a09d5b789a8a88c6cbd26c024b2e4215",
+  "paperclipInstallDir": "~/.hermes/webui/workspace/paperclip",
+  "paperclipPort": 3100
 }
