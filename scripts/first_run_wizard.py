@@ -14,7 +14,7 @@ FALLBACK_REPO = DEFAULT_REPO
 DEFAULT_REPO_REF = "main"
 # This commit contains the FMG-customized WebUI packaging fix. Keep it in sync
 # with contentscoin/hermes-for-web main when cutting installer releases.
-DEFAULT_EXPECTED_WEBUI_COMMIT = "cef6c20c93ba80f4682aa6c6f470055b18ffcbf9"
+DEFAULT_EXPECTED_WEBUI_COMMIT = "94af09b1b6710bceb82cc18708fdc8113da18056"
 DEFAULT_INSTALL_DIR = HERMES / "webui" / "workspace" / "hermes-for-web"
 DEFAULT_PAPERCLIP_REPO = "https://github.com/contentscoin/paperclip.git"
 DEFAULT_PAPERCLIP_REPO_REF = "live/opencrab-default-dag-20260510"

@@ -1,5 +1,5 @@
 const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
-const { spawn } = require('child_process');
+const { spawn, execFileSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -30,9 +30,21 @@ function installerRoot(){
   if (process.resourcesPath && fs.existsSync(path.join(process.resourcesPath, 'installer'))) return path.join(process.resourcesPath, 'installer');
   return path.join(__dirname, '..');
 }
+function windowsWslRuntimeExists(){
+  if(process.platform !== 'win32') return false;
+  try {
+    const command = 'test -f ~/.hermes/webui/workspace/hermes-for-web/start.sh -o -f ~/.hermes/webui/workspace/hermes-for-web/server.py && printf yes || printf no';
+    const out = execFileSync('wsl.exe', ['-d', wslDistro, '--', 'bash', '-lc', command], {encoding:'utf8', timeout:5000, windowsHide:true});
+    return String(out).trim() === 'yes';
+  } catch (err) {
+    appendLog(`windowsWslRuntimeExists failed: ${err && err.message ? err.message : err}`);
+    return false;
+  }
+}
 function runtimeExists(){
   const dir = webuiDir();
-  return fs.existsSync(path.join(dir, 'start.sh')) || fs.existsSync(path.join(dir, 'server.py'));
+  if(fs.existsSync(path.join(dir, 'start.sh')) || fs.existsSync(path.join(dir, 'server.py'))) return true;
+  return windowsWslRuntimeExists();
 }
 function health(){
   return new Promise(resolve => {
