@@ -6,7 +6,7 @@
   "primaryRepoUrl": "https://github.com/contentscoin/hermes-for-web.git",
   "fallbackRepoUrl": "https://github.com/contentscoin/hermes-for-web.git",
   "webuiRepoRef": "main",
-  "expectedWebUICommit": "cef6c20c93ba80f4682aa6c6f470055b18ffcbf9",
+  "expectedWebUICommit": "94af09b1b6710bceb82cc18708fdc8113da18056",
   "installDir": "~/.hermes/webui/workspace/hermes-for-web",
   "homepage": "https://github.com/contentscoin/hermes-ceo-console-installer",
   "secretsIncluded": false,
