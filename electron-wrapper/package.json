@@ -1,6 +1,6 @@
 {
   "name": "hermes-ceo-console-desktop",
-  "version": "0.1.0-alpha.10",
+  "version": "0.1.0-alpha.11",
   "private": true,
   "description": "Desktop wrapper and setup launcher for Hermes WebUI on localhost:8788",
   "main": "main.js",

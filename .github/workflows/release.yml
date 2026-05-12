@@ -204,7 +204,7 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          prerelease: true
+          prerelease: false
           generate_release_notes: true
           files: |
             release-assets/hermes-ceo-console-macos-arm64.dmg
