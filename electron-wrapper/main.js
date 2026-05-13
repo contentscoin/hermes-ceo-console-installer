@@ -3,12 +3,120 @@ const { spawn, execFileSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
+const https = require('https');
 
 const port = process.env.HERMES_WEBUI_PORT || '8788';
 const wslDistro = process.env.HERMES_WSL_DISTRO || 'Ubuntu';
 const webUrl = `http://127.0.0.1:${port}`;
 let win = null;
 let child = null;
+
+const updateOwner = 'contentscoin';
+const updateRepo = 'hermes-ceo-console-installer';
+const updateApiUrl = `https://api.github.com/repos/${updateOwner}/${updateRepo}/releases/latest`;
+const updatePageUrl = `https://github.com/${updateOwner}/${updateRepo}/releases/latest`;
+const updateCheckIntervalMs = Number(process.env.HERMES_UPDATE_CHECK_MS || 6 * 60 * 60 * 1000);
+let lastUpdatePromptTag = null;
+
+function currentVersion(){
+  try { return require('./package.json').version || '0.0.0'; }
+  catch (_) { return '0.0.0'; }
+}
+function normalizeVersionTag(value){ return String(value || '').trim().replace(/^v/i, ''); }
+function versionParts(value){
+  const normalized = normalizeVersionTag(value);
+  const match = normalized.match(/^(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z]+)\.(\d+))?/);
+  if(!match) return [0,0,0,'',0];
+  return [Number(match[1]), Number(match[2]), Number(match[3]), match[4] || '', Number(match[5] || 0)];
+}
+function compareVersions(a,b){
+  const pa = versionParts(a);
+  const pb = versionParts(b);
+  for(let i=0;i<3;i++){ if(pa[i] !== pb[i]) return pa[i] > pb[i] ? 1 : -1; }
+  if(pa[3] !== pb[3]){
+    if(!pa[3]) return 1;
+    if(!pb[3]) return -1;
+    return pa[3] > pb[3] ? 1 : -1;
+  }
+  if(pa[4] !== pb[4]) return pa[4] > pb[4] ? 1 : -1;
+  return 0;
+}
+function selectUpdateAsset(release){
+  const assets = Array.isArray(release && release.assets) ? release.assets : [];
+  const platform = process.platform;
+  const candidates = platform === 'win32'
+    ? [/Hermes\.CEO\.Console\.Setup\..*\.exe$/i, /\.exe$/i]
+    : platform === 'darwin'
+      ? [/hermes-ceo-console-macos.*\.dmg$/i, /\.dmg$/i]
+      : [/hermes-ceo-console-installer-pack\.zip$/i, /\.zip$/i];
+  for(const pattern of candidates){
+    const asset = assets.find(a => pattern.test(String(a.name || '')) && a.browser_download_url);
+    if(asset) return asset;
+  }
+  return null;
+}
+function fetchLatestRelease(){
+  return new Promise((resolve, reject) => {
+    const req = https.get(updateApiUrl, {headers:{'User-Agent':'Hermes-CEO-Console-Updater','Accept':'application/vnd.github+json'}}, res => {
+      let body = '';
+      res.setEncoding('utf8');
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        if(res.statusCode < 200 || res.statusCode >= 300) return reject(new Error(`GitHub latest release returned HTTP ${res.statusCode}`));
+        try { resolve(JSON.parse(body)); }
+        catch(err){ reject(err); }
+      });
+    });
+    req.setTimeout(8000, () => req.destroy(new Error('update_check_timeout')));
+    req.on('error', reject);
+  });
+}
+async function checkForUpdates({interactive=false}={}){
+  try {
+    const release = await fetchLatestRelease();
+    const latestTag = String(release.tag_name || '');
+    const latestVersion = normalizeVersionTag(latestTag);
+    const localVersion = currentVersion();
+    const asset = selectUpdateAsset(release);
+    const updateAvailable = compareVersions(latestVersion, localVersion) > 0;
+    const result = {ok:true, updateAvailable, localVersion, latestVersion, latestTag, releaseUrl:release.html_url || updatePageUrl, assetName:asset && asset.name, assetUrl:asset && asset.browser_download_url};
+    appendLog(`update check ok local=${localVersion} latest=${latestVersion} available=${updateAvailable} asset=${result.assetName || 'none'}`);
+    if(updateAvailable && win && (interactive || lastUpdatePromptTag !== latestTag)){
+      lastUpdatePromptTag = latestTag;
+      const response = await dialog.showMessageBox(win, {
+        type:'info',
+        buttons: asset ? ['업데이트 다운로드', '릴리즈 페이지', '나중에'] : ['릴리즈 페이지', '나중에'],
+        defaultId:0,
+        cancelId: asset ? 2 : 1,
+        title:'Hermes CEO Console 업데이트 가능',
+        message:`새 버전 ${latestTag} 이 GitHub에 배포되었습니다.`,
+        detail:`현재 버전: ${localVersion}\n최신 버전: ${latestVersion}\n${asset ? `다운로드: ${asset.name}` : '이 플랫폼에 맞는 설치 파일을 릴리즈 페이지에서 확인하세요.'}`
+      });
+      if(asset && response.response === 0) await shell.openExternal(asset.browser_download_url);
+      else if((asset && response.response === 1) || (!asset && response.response === 0)) await shell.openExternal(release.html_url || updatePageUrl);
+    } else if(interactive && win){
+      await dialog.showMessageBox(win, {
+        type:'info',
+        buttons:['확인'],
+        title:'Hermes CEO Console 업데이트 확인',
+        message:updateAvailable ? `새 버전 ${latestTag} 이 있습니다.` : '현재 최신 버전입니다.',
+        detail:`현재 버전: ${localVersion}\n최신 버전: ${latestVersion || '(unknown)'}`
+      });
+    }
+    return result;
+  } catch(err){
+    appendLog(`update check failed: ${err && err.message ? err.message : err}`);
+    const result = {ok:false, error:err && err.message ? err.message : String(err), localVersion:currentVersion(), releaseUrl:updatePageUrl};
+    if(interactive && win){
+      await dialog.showMessageBox(win, {type:'warning', buttons:['릴리즈 페이지 열기','닫기'], title:'업데이트 확인 실패', message:'GitHub 최신 버전을 확인하지 못했습니다.', detail:`${result.error}\n\n수동 확인: ${updatePageUrl}`}).then(async r => { if(r.response === 0) await shell.openExternal(updatePageUrl); });
+    }
+    return result;
+  }
+}
+function scheduleUpdateChecks(){
+  setTimeout(() => checkForUpdates({interactive:false}), 10000);
+  if(updateCheckIntervalMs > 0) setInterval(() => checkForUpdates({interactive:false}), updateCheckIntervalMs);
+}
 
 function appendLog(message){
   try {
@@ -190,6 +298,7 @@ function createWindow(){
 ipcMain.handle('health', health);
 ipcMain.handle('runtime-status', async () => ({healthy: await health(), runtimeExists: runtimeExists(), webUrl, webuiDir: webuiDir(), logPath: logPath()}));
 ipcMain.handle('open-webui', async () => { await shell.openExternal(webUrl); return true; });
+ipcMain.handle('check-updates', async () => checkForUpdates({interactive:true}));
 ipcMain.handle('retry', async () => { await route(); return true; });
 ipcMain.handle('start-existing', async () => { const started = startExistingRuntime(); return {started, healthy: await waitForHealth(35)}; });
 ipcMain.handle('run-setup', async () => runSetup());
@@ -198,5 +307,5 @@ ipcMain.handle('open-logs', async () => {
   if(fs.existsSync(p)) await shell.openPath(p); else dialog.showMessageBox({message:'Log file not found yet', detail:p});
   return true;
 });
-app.whenReady().then(createWindow);
+app.whenReady().then(() => { createWindow(); scheduleUpdateChecks(); });
 app.on('window-all-closed', ()=>{ if(process.platform !== 'darwin') app.quit(); });

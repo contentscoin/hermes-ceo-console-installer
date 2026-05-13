@@ -6,5 +6,6 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   startExisting: () => ipcRenderer.invoke('start-existing'),
   runSetup: () => ipcRenderer.invoke('run-setup'),
   openLogs: () => ipcRenderer.invoke('open-logs'),
-  openWebui: () => ipcRenderer.invoke('open-webui')
+  openWebui: () => ipcRenderer.invoke('open-webui'),
+  checkUpdates: () => ipcRenderer.invoke('check-updates')
 });

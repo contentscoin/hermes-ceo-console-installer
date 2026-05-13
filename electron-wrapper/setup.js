@@ -77,6 +77,15 @@ $('start').onclick = async () => {
 $('retry').onclick = async () => { setStatus(`localhost:${port} 상태를 다시 확인합니다...`); const ok = await callDesktop('health', false); if(ok){ setStatus('WebUI가 준비됐습니다. 앱 화면으로 전환합니다.'); await callDesktop('retry', false); } else { await callDesktop('retry', false); } };
 $('logs').onclick = () => callDesktop('openLogs', false);
 $('browser').onclick = () => callDesktop('openWebui', false);
+$('updates').onclick = async () => {
+  setStatus('GitHub 최신 릴리즈를 확인하는 중입니다...');
+  const result = await callDesktop('checkUpdates', {ok:false});
+  if(result && result.ok){
+    setStatus(result.updateAvailable ? `업데이트가 있습니다. 현재 ${result.localVersion}, 최신 ${result.latestTag || result.latestVersion}. 다운로드 창을 확인하세요.` : `현재 최신 버전입니다. 현재 ${result.localVersion}, 최신 ${result.latestTag || result.latestVersion}.`);
+  } else {
+    setStatus(`업데이트 확인에 실패했습니다. ${result && result.error ? result.error : 'unknown'}\n수동 확인: https://github.com/contentscoin/hermes-ceo-console-installer/releases/latest`);
+  }
+};
 applyMode();
 callDesktop('runtimeStatus', null).then(st => {
   if(st) $('meta').textContent = `WebUI: ${st.webUrl}\nInstall dir: ${st.webuiDir}\nLog: ${st.logPath}\nRuntime exists: ${st.runtimeExists}\nHealthy: ${st.healthy}`;
