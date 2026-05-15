@@ -77,6 +77,17 @@ $('start').onclick = async () => {
 $('retry').onclick = async () => { setStatus(`localhost:${port} 상태를 다시 확인합니다...`); const ok = await callDesktop('health', false); if(ok){ setStatus('WebUI가 준비됐습니다. 앱 화면으로 전환합니다.'); await callDesktop('retry', false); } else { await callDesktop('retry', false); } };
 $('logs').onclick = () => callDesktop('openLogs', false);
 $('browser').onclick = () => callDesktop('openWebui', false);
+$('restart').onclick = async () => {
+  setStatus('Hermes WebUI 서버를 재시작/복구하는 중입니다. 기존 8788 서버를 정리한 뒤 다시 시작합니다...');
+  const result = await callDesktop('restartServer', {started:false, healthy:false});
+  if(result && result.healthy){
+    setStatus('서버가 복구됐습니다. 앱 화면으로 전환합니다.');
+  } else if(result && result.started){
+    setStatus(`재시작 명령은 실행됐지만 아직 WebUI가 응답하지 않습니다.\nWebUI: http://127.0.0.1:${port}\nLog: ~/.hermes/logs/hermes-ceo-console.log`);
+  } else {
+    setStatus(`서버 재시작을 시작하지 못했습니다. 원인: ${(result && result.error) || 'unknown'}\n설치 경로가 없으면 Setup Wizard를 먼저 실행하세요.`);
+  }
+};
 $('updates').onclick = async () => {
   setStatus('GitHub 최신 릴리즈를 확인하는 중입니다...');
   const result = await callDesktop('checkUpdates', {ok:false});
