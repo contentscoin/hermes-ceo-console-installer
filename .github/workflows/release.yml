@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build script installer zip
         run: |
-          zip -r hermes-ceo-console-installer-pack.zip install-macos.sh install-windows.ps1 scripts templates profiles installer.manifest.json README.md LICENSE docs/SIGNING.md
+          zip -r hermes-ceo-console-installer-pack.zip install-macos.sh install-windows.ps1 scripts templates profiles installer.manifest.json README.md NOTICE.md LICENSE docs/SIGNING.md
           sha256sum hermes-ceo-console-installer-pack.zip > hermes-ceo-console-installer-pack.zip.sha256
       - uses: actions/upload-artifact@v4
         with:
