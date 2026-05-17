@@ -39,7 +39,7 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
   -SkipPaperclip    skip Paperclip prompt
   -SkipOpenCrab     skip OpenCrab MCP prompt
   -SkipHermesUpdate do not run hermes update when Hermes CLI already exists
-                    Note: hermes --version may remain v0.13.0; the wizard prints source commits too.
+                    The wizard targets Hermes Agent v0.14.0 and prints source commits too.
 "@
   exit 0
 }
@@ -141,7 +141,7 @@ Guide "Stage 3/4: checking/updating Hermes Agent, FMG WebUI, and FMG-customized 
 Guide "This is the step you saw after pressing Setup again. It is normal after Ubuntu is ready."
 Guide "Keep this PowerShell window open until it prints Done. First install can take several minutes."
 Guide "Quick setup skips Codex/Telegram secret prompts, but installs/starts FMG-customized Paperclip locally."
-Guide "Note: hermes --version may still print v0.13.0; the wizard also prints Hermes source and WebUI commits."
+Guide "Hermes Agent target is v0.14.0; the wizard also prints Hermes source, WebUI, and Paperclip commits."
 $wizardArgs = @("--port", "$Port", "--repo", "$RepoUrl", "--repo-ref", "$RepoRef", "--expected-webui-commit", "$ExpectedWebUICommit", "--paperclip-repo", "$PaperclipRepoUrl", "--paperclip-repo-ref", "$PaperclipRepoRef", "--expected-paperclip-commit", "$ExpectedPaperclipCommit", "--paperclip-port", "$PaperclipPort")
 if($Yes){ $wizardArgs += "--yes" }
 if($NoStart){ $wizardArgs += "--no-start" }

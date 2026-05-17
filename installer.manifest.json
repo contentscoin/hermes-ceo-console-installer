@@ -1,6 +1,6 @@
 {
   "productName": "Hermes CEO Console",
-  "version": "0.1.0-alpha.16",
+  "version": "0.1.0-alpha.17",
   "appId": "com.fmg.hermes-ceo-console",
   "defaultPort": 8788,
   "primaryRepoUrl": "https://github.com/contentscoin/hermes-for-web.git",
@@ -44,5 +44,8 @@
   "paperclipRepoRef": "live/opencrab-default-dag-20260510",
   "expectedPaperclipCommit": "72bb0505a09d5b789a8a88c6cbd26c024b2e4215",
   "paperclipInstallDir": "~/.hermes/webui/workspace/paperclip",
-  "paperclipPort": 3100
+  "paperclipPort": 3100,
+  "expectedHermesAgentVersion": "v0.14.0",
+  "expectedHermesAgentCommit": "973f27e95631aaecbda5e32e3fa9e5d7f6a2e1d3",
+  "hermesAgentRepoUrl": "https://github.com/NousResearch/hermes-agent.git"
 }

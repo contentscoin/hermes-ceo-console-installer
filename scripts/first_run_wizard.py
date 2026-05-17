@@ -191,8 +191,8 @@ def print_hermes_cli_info(prefix='Hermes CLI'):
         print(f"{prefix} source remote: {info.get('source_remote')}")
     if info.get('source_commit'):
         print(f"{prefix} source commit: {info.get('source_commit')}")
-    if 'v0.13.0' in str(info.get('version')) or str(info.get('version')).strip().endswith('0.13.0'):
-        print('Hermes version note: upstream Hermes Agent still reports v0.13.0; use the source commit plus WebUI commit to verify freshness.')
+    if 'v0.14.0' not in str(info.get('version')):
+        print('Hermes version note: this installer targets Hermes Agent v0.14.0; use the source commit plus WebUI/Paperclip commits to verify freshness.')
     return info
 
 
