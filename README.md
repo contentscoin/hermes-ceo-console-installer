@@ -1,13 +1,13 @@
 # Hermes CEO Console Installer Pack
 
-Hermes CEO Console Installer Pack은 FMG용 Hermes Agent, FMG 커스터마이징 Hermes WebUI, FMG 커스터마이징 Paperclip, Telegram, Codex CLI, OpenCrab 선택 설정을 하나의 온보딩 흐름으로 묶는 macOS/Windows 설치 패키지입니다.
+Hermes CEO Console Installer Pack은 FMG용 Hermes Agent, FMG 커스터마이징 Hermes WebUI, FMG 커스터마이징 Paperclip, Telegram, Codex CLI, OpenCrab/Neo4j 선택 설정을 하나의 온보딩 흐름으로 묶는 macOS/Windows 설치 패키지입니다.
 
 이 installer의 목표는 사용자가 데스크톱 앱처럼 Hermes CEO Console을 실행하면 내부적으로 다음 로컬 서비스가 준비되는 것입니다.
 
 - Hermes WebUI: http://127.0.0.1:8788
 - FMG Paperclip: http://127.0.0.1:3100
 - Hermes Agent CLI: `hermes`
-- 선택 통합: Telegram gateway, Codex CLI, OpenCrab MCP
+- 선택 통합: Telegram gateway, Codex CLI, OpenCrab MCP, Neo4j graph store
 
 중요: 이 저장소는 API key, Telegram bot token, Paperclip token, Codex OAuth token, OpenCrab endpoint key를 포함하지 않습니다. 모든 비밀값은 사용자의 로컬 컴퓨터에서 직접 입력하고 `~/.hermes/.env`, `~/.hermes/config.yaml`, 또는 각 도구의 로컬 인증 저장소에만 저장됩니다.
 
@@ -15,19 +15,19 @@ Hermes CEO Console Installer Pack은 FMG용 Hermes Agent, FMG 커스터마이징
 
 ## 1. 현재 릴리스
 
-현재 alpha release는 `v0.1.0-alpha.17`입니다.
+현재 alpha release는 `v0.1.0-alpha.18`입니다.
 
 Release 페이지:
 https://github.com/contentscoin/hermes-ceo-console-installer/releases/latest
 
 직접 다운로드:
 
-- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/Hermes.CEO.Console.Setup.0.1.0-alpha.17.exe
-- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/windows-exe.sha256
-- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-macos-arm64.dmg
-- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-macos-arm64.dmg.sha256
-- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-installer-pack.zip
-- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-installer-pack.zip.sha256
+- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/Hermes.CEO.Console.Setup.0.1.0-alpha.18.exe
+- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/windows-exe.sha256
+- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-macos-arm64.dmg
+- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-macos-arm64.dmg.sha256
+- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip
+- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip.sha256
 
 GitHub의 `/releases/download/` 주소는 폴더 페이지가 아닙니다. 반드시 `태그명/파일명`까지 포함된 전체 링크를 사용하세요.
 
@@ -43,6 +43,7 @@ GitHub의 `/releases/download/` 주소는 폴더 페이지가 아닙니다. 반�
 | Hermes WebUI | FMG fork `https://github.com/contentscoin/hermes-for-web.git`; upstream 기반 WebUI | CEO Console 화면, multi-agent/profile/workspace/Paperclip/OpenCrab 연동 UI |
 | Paperclip | Paperclip project / FMG fork `https://github.com/contentscoin/paperclip.git` | 로컬 FMG Paperclip 보드와 read-only workflow diagnostics / iframe 연동 |
 | OpenCrab | OpenCrab service, `https://opencrab.sh` | 사용자가 직접 설정한 MCP endpoint를 통한 선택형 ontology connector 상태 확인. endpoint key는 포함하지 않음 |
+| Neo4j | Neo4j graph database | 검토 완료 ontology pack의 선택형 graph store 대상. installer는 placeholder/readiness만 제공하며 자동 write는 하지 않음 |
 | Desktop wrapper | Electron / electron-builder 생태계 | macOS DMG 및 Windows NSIS installer shell 빌드 |
 | Node / pnpm / WSL2 / Ubuntu | 각 배포 프로젝트 및 Microsoft/Ubuntu 생태계 | Windows WSL2 기반 runtime 설치와 dependency bootstrap |
 
@@ -78,6 +79,7 @@ Hermes WebUI     http://127.0.0.1:8788
 Paperclip        http://127.0.0.1:3100
 Paperclip health http://127.0.0.1:3100/api/health
 WebUI health     http://127.0.0.1:8788/health
+Neo4j Bolt       bolt://127.0.0.1:7687 optional/readiness only
 ```
 
 FMG 소스 고정값:
@@ -113,7 +115,7 @@ Windows 권장 방식은 WSL2 + Ubuntu 런타임입니다. Windows 앱은 데스
 1. 아래 EXE를 다운로드합니다.
 
 ```text
-https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/Hermes.CEO.Console.Setup.0.1.0-alpha.17.exe
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/Hermes.CEO.Console.Setup.0.1.0-alpha.18.exe
 ```
 
 2. EXE를 실행해 설치합니다.
@@ -148,7 +150,7 @@ EXE 대신 script pack으로 설치하려면 PowerShell에서 실행합니다.
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
+Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
 Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
 cd .\hermes-ceo-console-installer
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipOpenCrab
@@ -185,7 +187,7 @@ macOS는 WSL 없이 로컬에서 Hermes Agent / WebUI / Paperclip을 실행합�
 1. Release에서 DMG를 다운로드합니다.
 
 ```text
-https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-macos-arm64.dmg
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-macos-arm64.dmg
 ```
 
 2. DMG를 열고 앱을 Applications로 이동합니다.
@@ -197,7 +199,7 @@ Unsigned 또는 notarization 상태에 따라 Gatekeeper 경고가 보일 수 �
 ### 5.2 script pack 설치
 
 ```bash
-curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-installer-pack.zip
+curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip
 unzip hermes-ceo-console-installer-pack.zip -d hermes-ceo-console-installer
 cd hermes-ceo-console-installer
 chmod +x install-macos.sh scripts/first_run_wizard.py
@@ -478,7 +480,38 @@ full execution 승인
 맞는 듯
 ```
 
-### 7.6 Paperclip Workflow Control Pack
+
+### 7.6 Neo4j 선택 설정
+
+Neo4j는 OpenCrab/LocalCrab pack을 검토 후 graph store로 적용하고 싶을 때 사용하는 선택 통합입니다. 현재 installer는 Neo4j를 기본 설치하거나 graph write를 자동 실행하지 않습니다. 로컬 또는 외부 Neo4j를 사용할 경우 아래 placeholder를 `~/.hermes/.env`에 설정합니다.
+
+```text
+NEO4J_URI=bolt://127.0.0.1:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=...
+NEO4J_DATABASE=neo4j
+NEO4J_WRITE_ENABLED=false
+```
+
+운영 원칙:
+- 기본값은 write disabled입니다.
+- installer는 credential 값을 출력하지 않습니다.
+- Neo4j write/apply는 pack 검토 후 별도 명시 승인으로만 진행합니다.
+- `NEO4J_WRITE_ENABLED=true`만으로 자동 적용되지 않으며, 별도 apply 명령과 승인 절차가 필요합니다.
+
+readiness 확인:
+
+```bash
+python3 scripts/first_run_wizard.py --status-json
+```
+
+Windows WSL:
+
+```powershell
+wsl bash -lc "python3 /path/to/scripts/first_run_wizard.py --status-json"
+```
+
+### 7.7 Paperclip Workflow Control Pack
 
 installer에는 Paperclip live workflow 상태를 read-only로 점검하고, 필요한 경우 명시 승인 후 routine을 조정할 수 있는 로컬 스크립트가 포함됩니다.
 
@@ -809,8 +842,9 @@ corepack prepare pnpm@9.15.4 --activate
 4. OpenCrab endpoint는 key를 포함할 수 있으므로 항상 `https://opencrab.sh/api/mcp/[REDACTED]` 형태로만 문서화합니다.
 5. Telegram 전송은 대상과 문구 확인 후에만 실행합니다.
 6. Paperclip 반영은 Decision Report / 결과 보고 후 명시 승인 시에만 실행합니다.
-7. read-only 진단은 승인 없이 가능하지만, pause/resume/manual-run/update 같은 변경 작업은 dry-run preview와 명시 승인이 필요합니다.
-8. Installer는 로컬 개발용 alpha입니다. 조직 배포 전 signing, notarization, checksum 검증을 권장합니다.
+7. Neo4j write/apply는 검토 완료 pack에 대해 별도 승인 후에만 실행합니다.
+8. read-only 진단은 승인 없이 가능하지만, pause/resume/manual-run/update 같은 변경 작업은 dry-run preview와 명시 승인이 필요합니다.
+9. Installer는 로컬 개발용 alpha입니다. 조직 배포 전 signing, notarization, checksum 검증을 권장합니다.
 
 ---
 
@@ -898,8 +932,8 @@ node --check electron-wrapper/preload.js
 Release asset 확인:
 
 ```bash
-curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/Hermes.CEO.Console.Setup.0.1.0-alpha.17.exe
-curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.17/hermes-ceo-console-installer-pack.zip
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/Hermes.CEO.Console.Setup.0.1.0-alpha.18.exe
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip
 ```
 
 Script pack 내용 확인:
@@ -927,6 +961,7 @@ PY
 - Paperclip live iframe 연동
 - Paperclip Workflow Control read-only 진단
 - OpenCrab 선택 설정
+- Neo4j 선택 설정 및 credential-free readiness check
 - Telegram/Codex 후속 설정 가이드
 - secret-free profile/manifest
 - README/NOTICE 출처 및 오픈소스 고지

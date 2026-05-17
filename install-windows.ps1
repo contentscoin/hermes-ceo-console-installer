@@ -14,6 +14,7 @@ param(
   [switch]$SkipTelegram,
   [switch]$SkipPaperclip,
   [switch]$SkipOpenCrab,
+  [switch]$SkipNeo4j,
   [switch]$SkipHermesUpdate,
   [switch]$Help
 )
@@ -38,6 +39,7 @@ Usage: powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 [options]
   -SkipTelegram     skip Telegram token prompt
   -SkipPaperclip    skip Paperclip prompt
   -SkipOpenCrab     skip OpenCrab MCP prompt
+  -SkipNeo4j        skip Neo4j optional config/readiness check
   -SkipHermesUpdate do not run hermes update when Hermes CLI already exists
                     The wizard targets Hermes Agent v0.14.0 and prints source commits too.
 "@
@@ -149,6 +151,7 @@ if($SkipCodex){ $wizardArgs += "--skip-codex" }
 if($SkipTelegram){ $wizardArgs += "--skip-telegram" }
 if($SkipPaperclip){ $wizardArgs += "--skip-paperclip" }
 if($SkipOpenCrab){ $wizardArgs += "--skip-opencrab" }
+if($SkipNeo4j){ $wizardArgs += "--skip-neo4j" }
 if($SkipHermesUpdate){ $wizardArgs += "--skip-hermes-update" }
 $wizardWin = Join-Path $ScriptDir "scripts\first_run_wizard.py"
 $wizardWsl = (wsl -d $Distro -- wslpath -a ($wizardWin -replace '\\','/')).Trim()

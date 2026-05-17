@@ -107,6 +107,65 @@ def opencrab_configured():
     return 'mcp_servers:' in text and 'opencrab:' in text
 
 
+
+def neo4j_env_status():
+    env = read_env()
+    uri = env.get('NEO4J_URI') or ''
+    user = env.get('NEO4J_USER') or ''
+    database = env.get('NEO4J_DATABASE') or 'neo4j'
+    write_enabled = str(env.get('NEO4J_WRITE_ENABLED') or '').lower() in ('1', 'true', 'yes', 'on')
+    return {
+        'configured': bool(uri and user),
+        'uri_present': bool(uri),
+        'user_present': bool(user),
+        'password_present': bool(env.get('NEO4J_PASSWORD')),
+        'database': database,
+        'write_enabled': write_enabled,
+    }
+
+
+def neo4j_reachable(uri=''):
+    # Credential-free readiness probe only. Bolt auth/queries are intentionally not attempted here.
+    uri = (uri or '').strip()
+    if not uri:
+        uri = 'bolt://127.0.0.1:7687'
+    try:
+        import socket
+        target = uri.split('://', 1)[-1].split('/', 1)[0]
+        host, _, port_text = target.partition(':')
+        port = int(port_text or 7687)
+        with socket.create_connection((host or '127.0.0.1', port), timeout=1.5):
+            return True
+    except Exception:
+        return False
+
+
+def configure_neo4j(args):
+    if args.skip_neo4j:
+        return
+    print('Neo4j: optional local/external graph store for reviewed ontology packs. Installer never writes graph data automatically.')
+    updates = {}
+    if args.yes:
+        updates.setdefault('NEO4J_WRITE_ENABLED', 'false')
+        if updates:
+            write_env(updates)
+        return
+    uri = ask('Neo4j URI (blank to configure later)', '', secret=False)
+    if uri:
+        updates['NEO4J_URI'] = uri
+        user = ask('Neo4j user', 'neo4j')
+        password = ask('Neo4j password (blank to skip)', '', secret=True)
+        database = ask('Neo4j database', 'neo4j')
+        updates['NEO4J_USER'] = user
+        if password:
+            updates['NEO4J_PASSWORD'] = password
+        updates['NEO4J_DATABASE'] = database or 'neo4j'
+    updates['NEO4J_WRITE_ENABLED'] = 'false'
+    if updates:
+        write_env(updates)
+        print(f'Updated {ENV} with Neo4j settings (password redacted, writes disabled).')
+
+
 def configure_opencrab_mcp(args):
     if args.skip_opencrab:
         return
@@ -157,6 +216,8 @@ def status(port, install_dir):
         'paperclip_expected_commit': DEFAULT_EXPECTED_PAPERCLIP_COMMIT,
         'paperclip_workflow_control': 'available' if (Path(__file__).resolve().parent / 'paperclip_workflow_control.py').exists() else 'missing',
         'opencrab': 'configured' if opencrab_configured() else 'missing',
+        'neo4j': neo4j_env_status(),
+        'neo4j_reachable': neo4j_reachable(env.get('NEO4J_URI') or ''),
         'codex': 'installed_login_unverified' if codex_ok else 'missing',
         'secrets_redacted': True,
     }
@@ -476,6 +537,7 @@ def main():
     ap.add_argument('--skip-telegram', action='store_true')
     ap.add_argument('--skip-paperclip', action='store_true')
     ap.add_argument('--skip-opencrab', action='store_true', help='skip OpenCrab MCP endpoint prompt')
+    ap.add_argument('--skip-neo4j', action='store_true', help='skip Neo4j optional config/readiness check')
     ap.add_argument('--skip-hermes-update', action='store_true', help='do not run hermes update when Hermes CLI already exists')
     ap.add_argument('--no-start', action='store_true')
     ap.add_argument('--status-json', action='store_true')
@@ -490,6 +552,7 @@ def main():
     configure_integrations(args)
     install_or_update_paperclip(args)
     configure_opencrab_mcp(args)
+    configure_neo4j(args)
     codex_flow(args.skip_codex, args.yes)
     if which('hermes'):
         run(['hermes','doctor'], capture=False)

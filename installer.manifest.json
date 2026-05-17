@@ -1,6 +1,6 @@
 {
   "productName": "Hermes CEO Console",
-  "version": "0.1.0-alpha.17",
+  "version": "0.1.0-alpha.18",
   "appId": "com.fmg.hermes-ceo-console",
   "defaultPort": 8788,
   "primaryRepoUrl": "https://github.com/contentscoin/hermes-for-web.git",
@@ -38,6 +38,16 @@
     "codex": {
       "mode": "oauth-device-login",
       "silentLogin": false
+    },
+    "neo4j": {
+      "mode": "optional-local-or-external",
+      "installDefault": false,
+      "autoApply": false,
+      "writeEnabledByDefault": false,
+      "uriEnv": "NEO4J_URI",
+      "userEnv": "NEO4J_USER",
+      "passwordEnv": "NEO4J_PASSWORD",
+      "databaseEnv": "NEO4J_DATABASE"
     }
   },
   "paperclipRepoUrl": "https://github.com/contentscoin/paperclip.git",
