@@ -3,7 +3,7 @@ param(
   [int]$Port = 8788,
   [string]$RepoUrl = "https://github.com/contentscoin/hermes-for-web.git",
   [string]$RepoRef = "main",
-  [string]$ExpectedWebUICommit = "d6cf50a59b34b3a5534d96cf9732a6a2523413dd",
+  [string]$ExpectedWebUICommit = "c58b33ee342ac09df46e813f74465e0ea9e04539",
   [string]$PaperclipRepoUrl = "https://github.com/contentscoin/paperclip.git",
   [string]$PaperclipRepoRef = "live/opencrab-default-dag-20260510",
   [string]$ExpectedPaperclipCommit = "72bb0505a09d5b789a8a88c6cbd26c024b2e4215",

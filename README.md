@@ -15,19 +15,19 @@ Hermes CEO Console Installer Pack은 FMG용 Hermes Agent, FMG 커스터마이징
 
 ## 1. 현재 릴리스
 
-현재 alpha release는 `v0.1.0-alpha.18`입니다.
+현재 alpha release는 `v0.1.0-alpha.19`입니다.
 
 Release 페이지:
 https://github.com/contentscoin/hermes-ceo-console-installer/releases/latest
 
 직접 다운로드:
 
-- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/Hermes.CEO.Console.Setup.0.1.0-alpha.18.exe
-- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/windows-exe.sha256
-- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-macos-arm64.dmg
-- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-macos-arm64.dmg.sha256
-- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip
-- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip.sha256
+- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/Hermes.CEO.Console.Setup.0.1.0-alpha.19.exe
+- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/windows-exe.sha256
+- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-macos-arm64.dmg
+- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-macos-arm64.dmg.sha256
+- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-installer-pack.zip
+- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-installer-pack.zip.sha256
 
 GitHub의 `/releases/download/` 주소는 폴더 페이지가 아닙니다. 반드시 `태그명/파일명`까지 포함된 전체 링크를 사용하세요.
 
@@ -87,7 +87,7 @@ FMG 소스 고정값:
 ```text
 Hermes WebUI repo      https://github.com/contentscoin/hermes-for-web.git
 Hermes WebUI ref       main
-Hermes WebUI commit    d6cf50a59b34b3a5534d96cf9732a6a2523413dd
+Hermes WebUI commit    c58b33ee342ac09df46e813f74465e0ea9e04539
 
 Paperclip repo         https://github.com/contentscoin/paperclip.git
 Paperclip ref          live/opencrab-default-dag-20260510
@@ -115,7 +115,7 @@ Windows 권장 방식은 WSL2 + Ubuntu 런타임입니다. Windows 앱은 데스
 1. 아래 EXE를 다운로드합니다.
 
 ```text
-https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/Hermes.CEO.Console.Setup.0.1.0-alpha.18.exe
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/Hermes.CEO.Console.Setup.0.1.0-alpha.19.exe
 ```
 
 2. EXE를 실행해 설치합니다.
@@ -150,7 +150,7 @@ EXE 대신 script pack으로 설치하려면 PowerShell에서 실행합니다.
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
+Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
 Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
 cd .\hermes-ceo-console-installer
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipOpenCrab
@@ -187,7 +187,7 @@ macOS는 WSL 없이 로컬에서 Hermes Agent / WebUI / Paperclip을 실행합�
 1. Release에서 DMG를 다운로드합니다.
 
 ```text
-https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-macos-arm64.dmg
+https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-macos-arm64.dmg
 ```
 
 2. DMG를 열고 앱을 Applications로 이동합니다.
@@ -199,7 +199,7 @@ Unsigned 또는 notarization 상태에 따라 Gatekeeper 경고가 보일 수 �
 ### 5.2 script pack 설치
 
 ```bash
-curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip
+curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-installer-pack.zip
 unzip hermes-ceo-console-installer-pack.zip -d hermes-ceo-console-installer
 cd hermes-ceo-console-installer
 chmod +x install-macos.sh scripts/first_run_wizard.py
@@ -234,7 +234,7 @@ wsl bash -lc "curl -fsS http://127.0.0.1:3100/api/health && echo && curl -fsS ht
 
 ```text
 Hermes WebUI origin: https://github.com/contentscoin/hermes-for-web.git
-Hermes WebUI HEAD:   d6cf50a59b34b3a5534d96cf9732a6a2523413dd
+Hermes WebUI HEAD:   c58b33ee342ac09df46e813f74465e0ea9e04539
 
 Paperclip origin:    https://github.com/contentscoin/paperclip.git
 Paperclip HEAD:      72bb0505a09d5b789a8a88c6cbd26c024b2e4215
@@ -932,8 +932,8 @@ node --check electron-wrapper/preload.js
 Release asset 확인:
 
 ```bash
-curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/Hermes.CEO.Console.Setup.0.1.0-alpha.18.exe
-curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.18/hermes-ceo-console-installer-pack.zip
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/Hermes.CEO.Console.Setup.0.1.0-alpha.19.exe
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.19/hermes-ceo-console-installer-pack.zip
 ```
 
 Script pack 내용 확인:

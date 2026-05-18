@@ -12,9 +12,9 @@ ENV = HERMES / ".env"
 DEFAULT_REPO = "https://github.com/contentscoin/hermes-for-web.git"
 FALLBACK_REPO = DEFAULT_REPO
 DEFAULT_REPO_REF = "main"
-# This commit contains the FMG-customized WebUI packaging fix. Keep it in sync
+# This commit contains the FMG-customized WebUI Research Intake safety ladder dashboard package. Keep it in sync
 # with contentscoin/hermes-for-web main when cutting installer releases.
-DEFAULT_EXPECTED_WEBUI_COMMIT = "d6cf50a59b34b3a5534d96cf9732a6a2523413dd"
+DEFAULT_EXPECTED_WEBUI_COMMIT = "c58b33ee342ac09df46e813f74465e0ea9e04539"
 DEFAULT_INSTALL_DIR = HERMES / "webui" / "workspace" / "hermes-for-web"
 DEFAULT_PAPERCLIP_REPO = "https://github.com/contentscoin/paperclip.git"
 DEFAULT_PAPERCLIP_REPO_REF = "live/opencrab-default-dag-20260510"
