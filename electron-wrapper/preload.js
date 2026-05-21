@@ -8,5 +8,7 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   openLogs: () => ipcRenderer.invoke('open-logs'),
   openWebui: () => ipcRenderer.invoke('open-webui'),
   checkUpdates: () => ipcRenderer.invoke('check-updates'),
-  restartServer: () => ipcRenderer.invoke('restart-server')
+  restartServer: () => ipcRenderer.invoke('restart-server'),
+  startPaperclipServer: () => ipcRenderer.invoke('start-paperclip-server'),
+  paperclipHealth: () => ipcRenderer.invoke('paperclip-health')
 });

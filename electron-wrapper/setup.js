@@ -13,7 +13,7 @@ const setupGuide = [
   '4. Ubuntu 첫 실행 시에는 Ubuntu 사용자 이름과 비밀번호를 한 번 만들어야 합니다.',
   '5. Ubuntu 설치/초기화 뒤 Setup Wizard를 한 번 더 누르면 Hermes Agent/WebUI 설치 단계로 이어지는 것이 정상입니다.',
   '6. Hermes 설치 단계는 몇 분 걸릴 수 있습니다. CMD/PowerShell 창을 닫지 말고 Done/완료 메시지까지 기다리세요.',
-  '7. Codex/Telegram/Paperclip 설정 질문은 여기서 기본적으로 건너뜁니다. WebUI가 열린 뒤 설정에서 진행하세요.',
+  '7. Codex/Telegram secret 설정 질문은 여기서 기본적으로 건너뛰지만, FMG-customized Paperclip은 설치/업데이트하고 로컬 서버를 시작합니다.',
   '8. 완료 메시지가 나오면 이 앱으로 돌아와 “다시 확인”을 누르세요.',
   '9. 오류가 보이면 CMD 창을 닫지 말고 마지막 오류 줄과 로그 경로를 확인하세요.',
 ].join('\n');
@@ -47,7 +47,7 @@ function applyMode(){
     $('start').classList.remove('secondary');
   } else if(mode === 'first-run'){
     $('title').textContent = '처음 설치 / 초기 설정 필요';
-    $('lead').innerHTML = `이 장비에는 아직 Hermes CEO Console 런타임이 감지되지 않았습니다. Setup Wizard를 열면 FMG 제공 WebUI를 설치/업데이트하고 바로 실행합니다. Codex, Telegram, Paperclip 같은 상세 설정은 WebUI가 열린 뒤 진행합니다.`;
+    $('lead').innerHTML = `이 장비에는 아직 Hermes CEO Console 런타임이 감지되지 않았습니다. Setup Wizard를 열면 FMG 제공 WebUI와 FMG-customized Paperclip을 설치/업데이트하고 바로 실행합니다. Codex, Telegram 같은 상세 설정은 WebUI가 열린 뒤 진행합니다.`;
     setStatus(`“처음 설치 / Setup Wizard”를 누르면 CMD/PowerShell 창이 열립니다.\n\n${setupGuide}`);
     $('start').classList.add('secondary');
   } else {
@@ -86,6 +86,17 @@ $('restart').onclick = async () => {
     setStatus(`재시작 명령은 실행됐지만 아직 WebUI가 응답하지 않습니다.\nWebUI: http://127.0.0.1:${port}\nLog: ~/.hermes/logs/hermes-ceo-console.log`);
   } else {
     setStatus(`서버 재시작을 시작하지 못했습니다. 원인: ${(result && result.error) || 'unknown'}\n설치 경로가 없으면 Setup Wizard를 먼저 실행하세요.`);
+  }
+};
+$('paperclip').onclick = async () => {
+  setStatus('Paperclip 서버를 시작/복구하는 중입니다. 3100 포트 health를 먼저 확인하고, 필요하면 FMG Paperclip 런타임을 실행합니다...');
+  const result = await callDesktop('startPaperclipServer', {started:false, healthy:false});
+  if(result && result.healthy){
+    setStatus(`Paperclip 서버가 준비됐습니다.\nPaperclip: ${result.paperclipUrl || 'http://127.0.0.1:3100'}\nLog: ${result.logPath || '~/.hermes/logs/paperclip-fmg.log'}`);
+  } else if(result && result.started){
+    setStatus(`Paperclip 시작 명령은 실행됐지만 아직 응답하지 않습니다.\nPaperclip: ${result.paperclipUrl || 'http://127.0.0.1:3100'}\nHealth: ${result.healthUrl || 'http://127.0.0.1:3100/api/health'}\nLog: ${result.logPath || '~/.hermes/logs/paperclip-fmg.log'}`);
+  } else {
+    setStatus(`Paperclip 서버 시작을 시작하지 못했습니다. 원인: ${(result && result.error) || 'unknown'}\n설치가 아직이면 Setup Wizard를 먼저 실행하세요.`);
   }
 };
 $('updates').onclick = async () => {

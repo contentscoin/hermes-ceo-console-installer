@@ -10,6 +10,12 @@ const wslDistro = process.env.HERMES_WSL_DISTRO || 'Ubuntu';
 const webUrl = `http://127.0.0.1:${port}`;
 let win = null;
 let child = null;
+let paperclipChild = null;
+const paperclipPort = process.env.PAPERCLIP_PORT || '3100';
+const defaultPaperclipUrl = 'http://127.0.0.1:3100';
+const defaultPaperclipHealthUrl = 'http://127.0.0.1:3100/api/health';
+const paperclipUrl = process.env.PAPERCLIP_WEB_URL || (paperclipPort === '3100' ? defaultPaperclipUrl : `http://127.0.0.1:${paperclipPort}`);
+const paperclipHealthUrl = paperclipUrl === defaultPaperclipUrl ? defaultPaperclipHealthUrl : `${paperclipUrl.replace(/\/$/, '')}/api/health`;
 
 const updateOwner = 'contentscoin';
 const updateRepo = 'hermes-ceo-console-installer';
@@ -129,6 +135,7 @@ function appendLog(message){
 function homeDir(){ return app.getPath('home'); }
 function webuiDir(){ return process.env.HERMES_WEBUI_DIR || path.join(homeDir(), '.hermes', 'webui', 'workspace', 'hermes-for-web'); }
 function logPath(){ return path.join(homeDir(), '.hermes', 'logs', 'hermes-ceo-console.log'); }
+function paperclipLogPath(){ return path.join(homeDir(), '.hermes', 'logs', 'paperclip-fmg.log'); }
 function ensureLogFd(){
   const p = logPath();
   fs.mkdirSync(path.dirname(p), {recursive:true});
@@ -154,13 +161,15 @@ function runtimeExists(){
   if(fs.existsSync(path.join(dir, 'start.sh')) || fs.existsSync(path.join(dir, 'server.py'))) return true;
   return windowsWslRuntimeExists();
 }
-function health(){
+function probeHttpOk(url){
   return new Promise(resolve => {
-    const req = http.get(`${webUrl}/health`, res => { res.resume(); resolve(res.statusCode === 200); });
+    const req = http.get(url, res => { res.resume(); resolve(res.statusCode >= 200 && res.statusCode < 300); });
     req.setTimeout(1500, () => { req.destroy(); resolve(false); });
     req.on('error', () => resolve(false));
   });
 }
+function health(){ return probeHttpOk(`${webUrl}/health`); }
+function paperclipHealth(){ return probeHttpOk(paperclipHealthUrl); }
 async function waitForHealth(seconds=35){
   const deadline = Date.now() + seconds * 1000;
   while(Date.now() < deadline){
@@ -168,6 +177,70 @@ async function waitForHealth(seconds=35){
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   return false;
+}
+async function waitForPaperclipHealth(seconds=35){
+  const deadline = Date.now() + seconds * 1000;
+  while(Date.now() < deadline){
+    if(await paperclipHealth()) return true;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  return false;
+}
+function killPaperclipChild(){
+  if(!paperclipChild || paperclipChild.killed) return;
+  try {
+    appendLog(`stopping tracked paperclip child pid=${paperclipChild.pid || 'unknown'}`);
+    if(process.platform === 'win32') paperclipChild.kill();
+    else process.kill(-paperclipChild.pid, 'SIGTERM');
+  } catch(err){
+    try { paperclipChild.kill('SIGTERM'); } catch (_) {}
+    appendLog(`paperclip child stop warning: ${err && err.message ? err.message : err}`);
+  }
+  paperclipChild = null;
+}
+async function startPaperclipServer({showDialog=false}={}){
+  appendLog(`startPaperclipServer requested url=${paperclipUrl} platform=${process.platform}`);
+  if(await paperclipHealth()){
+    appendLog('startPaperclipServer skipped: already healthy');
+    if(showDialog && win){
+      await dialog.showMessageBox(win, {type:'info', buttons:['확인'], title:'Paperclip 서버', message:'Paperclip 서버가 이미 실행 중입니다.', detail:`Paperclip: ${paperclipUrl}\nLog: ${paperclipLogPath()}`});
+    }
+    return {started:false, healthy:true, alreadyRunning:true, paperclipUrl, logPath:paperclipLogPath()};
+  }
+  fs.mkdirSync(path.dirname(paperclipLogPath()), {recursive:true});
+  const logFd = fs.openSync(paperclipLogPath(), 'a');
+  try {
+    if(process.platform === 'win32'){
+      const command = `mkdir -p ~/.hermes/logs; export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null 2>&1 || true; if [ -d ~/.hermes/webui/workspace/paperclip ]; then cd ~/.hermes/webui/workspace/paperclip && (pnpm paperclipai run --instance default || npx -y paperclipai run --instance default); else cd ~/.hermes/webui/workspace && npx -y paperclipai run --instance default; fi`;
+      paperclipChild = spawn('wsl.exe', ['-d', wslDistro, '--', 'bash', '-lc', command], {stdio:['ignore', logFd, logFd], detached:true});
+    } else {
+      const workspaceDir = path.join(homeDir(), '.hermes', 'webui', 'workspace');
+      const localPaperclipDir = path.join(workspaceDir, 'paperclip');
+      const command = fs.existsSync(localPaperclipDir)
+        ? `export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null 2>&1 || true; cd ${quoteForShell(localPaperclipDir)}; pnpm paperclipai run --instance default || npx -y paperclipai run --instance default`
+        : `export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm use 20 >/dev/null 2>&1 || true; cd ${quoteForShell(workspaceDir)}; npx -y paperclipai run --instance default`;
+      paperclipChild = spawn('/bin/bash', ['-lc', command], {stdio:['ignore', logFd, logFd], detached:true});
+    }
+    paperclipChild.unref();
+  } catch(err){
+    appendLog(`startPaperclipServer spawn failed: ${err && err.message ? err.message : err}`);
+    if(showDialog && win){
+      await dialog.showMessageBox(win, {type:'error', buttons:['확인'], title:'Paperclip 서버 시작 실패', message:'Paperclip 서버 시작 명령을 실행하지 못했습니다.', detail:`${err && err.message ? err.message : err}\nLog: ${paperclipLogPath()}`});
+    }
+    return {started:false, healthy:false, error:err && err.message ? err.message : String(err), paperclipUrl, logPath:paperclipLogPath()};
+  }
+  const healthy = await waitForPaperclipHealth(45);
+  appendLog(`startPaperclipServer result pid=${paperclipChild && paperclipChild.pid ? paperclipChild.pid : 'unknown'} healthy=${healthy}`);
+  if(showDialog && win){
+    await dialog.showMessageBox(win, {
+      type: healthy ? 'info' : 'warning',
+      buttons:['확인'],
+      title:'Paperclip 서버 시작/복구',
+      message: healthy ? 'Paperclip 서버가 시작되었습니다.' : 'Paperclip 시작 명령은 실행했지만 아직 응답하지 않습니다.',
+      detail:`Paperclip: ${paperclipUrl}\nHealth: ${paperclipHealthUrl}\nLog: ${paperclipLogPath()}${healthy ? '' : '\n로그를 열어 오류를 확인하세요.'}`
+    });
+  }
+  return {started:true, healthy, paperclipUrl, healthUrl:paperclipHealthUrl, logPath:paperclipLogPath()};
 }
 
 function killTrackedChild(){
@@ -231,8 +304,10 @@ function buildAppMenu(){
       label:'Hermes',
       submenu:[
         {label:'서버 재시작/복구', accelerator:'CmdOrCtrl+R', click:() => restartRuntime({showDialog:true})},
+        {label:'Paperclip 서버 시작/복구', accelerator:'CmdOrCtrl+Shift+P', click:() => startPaperclipServer({showDialog:true})},
         {label:'상태 다시 확인', accelerator:'CmdOrCtrl+Shift+R', click:() => route()},
         {label:'WebUI 브라우저로 열기', click:() => shell.openExternal(webUrl)},
+        {label:'Paperclip 브라우저로 열기', click:() => shell.openExternal(paperclipUrl)},
         {label:'로그 열기', click:async () => { const p=logPath(); if(fs.existsSync(p)) await shell.openPath(p); else dialog.showMessageBox({message:'Log file not found yet', detail:p}); }},
         {type:'separator'},
         {label:'업데이트 확인', click:() => checkForUpdates({interactive:true})},
@@ -381,6 +456,8 @@ ipcMain.handle('check-updates', async () => checkForUpdates({interactive:true}))
 ipcMain.handle('retry', async () => { await route(); return true; });
 ipcMain.handle('start-existing', async () => { const started = startExistingRuntime(); return {started, healthy: await waitForHealth(35)}; });
 ipcMain.handle('restart-server', async () => restartRuntime({showDialog:false}));
+ipcMain.handle('start-paperclip-server', async () => startPaperclipServer({showDialog:false}));
+ipcMain.handle('paperclip-health', async () => ({healthy: await paperclipHealth(), paperclipUrl, healthUrl: paperclipHealthUrl, logPath: paperclipLogPath()}));
 ipcMain.handle('run-setup', async () => runSetup());
 ipcMain.handle('open-logs', async () => {
   const p = logPath();
