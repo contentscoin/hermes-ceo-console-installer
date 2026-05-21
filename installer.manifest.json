@@ -1,6 +1,6 @@
 {
   "productName": "Hermes CEO Console",
-  "version": "0.1.0-alpha.19",
+  "version": "0.1.0-alpha.20",
   "appId": "com.fmg.hermes-ceo-console",
   "defaultPort": 8788,
   "primaryRepoUrl": "https://github.com/contentscoin/hermes-for-web.git",
