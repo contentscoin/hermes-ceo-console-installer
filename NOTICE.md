@@ -15,7 +15,7 @@ Hermes CEO Console Installer Pack is an FMG integration and distribution wrapper
   - This installer pins a specific FMG WebUI commit in installer.manifest.json and setup scripts. Judge freshness by the WebUI repo/commit, not only by `hermes --version`.
 
 - Paperclip
-  - FMG distribution source used by this installer: https://github.com/contentscoin/paperclip.git
+  - FMG distribution source used by this installer: https://github.com/paperclipai/paperclip.git
   - Role in this pack: local Paperclip board/service at http://127.0.0.1:3100, iframe integration, and read-only workflow diagnostics.
   - Paperclip reflection/mutations remain approval-gated and are not performed automatically by this installer.
 

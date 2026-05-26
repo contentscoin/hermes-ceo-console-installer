@@ -14,12 +14,12 @@ FALLBACK_REPO = DEFAULT_REPO
 DEFAULT_REPO_REF = "main"
 # This commit contains the FMG-customized WebUI Research Intake safety ladder dashboard package. Keep it in sync
 # with contentscoin/hermes-for-web main when cutting installer releases.
-DEFAULT_EXPECTED_WEBUI_COMMIT = "c58b33ee342ac09df46e813f74465e0ea9e04539"
+DEFAULT_EXPECTED_WEBUI_COMMIT = "e3e593dc2dc526dedcd8fa0b66ed13f858d65b09"
 DEFAULT_INSTALL_DIR = HERMES / "webui" / "workspace" / "hermes-for-web"
-DEFAULT_PAPERCLIP_REPO = "https://github.com/contentscoin/paperclip.git"
-DEFAULT_PAPERCLIP_REPO_REF = "live/opencrab-default-dag-20260510"
+DEFAULT_PAPERCLIP_REPO = "https://github.com/paperclipai/paperclip.git"
+DEFAULT_PAPERCLIP_REPO_REF = "master"
 # FMG-customized Paperclip commit with Live Workflow DAG, OpenCrab plugin, and legacy issue blank-page fix.
-DEFAULT_EXPECTED_PAPERCLIP_COMMIT = "72bb0505a09d5b789a8a88c6cbd26c024b2e4215"
+DEFAULT_EXPECTED_PAPERCLIP_COMMIT = "9aea3e3d35fe47a745857b91c392da5b3fc0ae17"
 DEFAULT_PAPERCLIP_INSTALL_DIR = HERMES / "webui" / "workspace" / "paperclip"
 DEFAULT_PAPERCLIP_PORT = 3100
 
