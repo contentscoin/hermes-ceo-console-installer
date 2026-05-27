@@ -23,6 +23,7 @@ const updateApiUrl = `https://api.github.com/repos/${updateOwner}/${updateRepo}/
 const updatePageUrl = `https://github.com/${updateOwner}/${updateRepo}/releases/latest`;
 const updateCheckIntervalMs = Number(process.env.HERMES_UPDATE_CHECK_MS || 6 * 60 * 60 * 1000);
 let lastUpdatePromptTag = null;
+let autoSetupStarted = false;
 
 function currentVersion(){
   try { return require('./package.json').version || '0.0.0'; }
@@ -325,6 +326,16 @@ function buildAppMenu(){
 function loadSetup(mode){
   return win.loadFile(path.join(__dirname, 'setup.html'), {query: {mode, port, dir: webuiDir()}});
 }
+async function maybeAutoRunWindowsSetup(reason){
+  if(process.platform !== 'win32') return null;
+  if(process.env.HERMES_AUTO_SETUP_ON_START === '0') return null;
+  if(autoSetupStarted) return null;
+  autoSetupStarted = true;
+  appendLog(`auto setup requested reason=${reason || 'unknown'} version=${currentVersion()}`);
+  const result = await runSetup();
+  appendLog(`auto setup result started=${result && result.started} mode=${result && result.mode ? result.mode : 'none'} error=${result && result.error ? result.error : 'none'}`);
+  return result;
+}
 function startExistingRuntime(){
   if(!runtimeExists()) return false;
   const dir = webuiDir();
@@ -353,7 +364,8 @@ function writeWindowsSetupLauncher(script){
     'echo Hermes CEO Console Setup',
     'echo.',
     'echo [What this window does]',
-    'echo This command window installs or updates the FMG-provided Hermes WebUI and Paperclip runtimes,',
+    'echo This command window automatically installs or updates Hermes Agent inside WSL,',
+    'echo then updates the FMG-provided Hermes WebUI and Paperclip runtimes,',
     `echo then starts WebUI at http://127.0.0.1:${port} and Paperclip at http://127.0.0.1:3100.`,
     'echo It uses quick setup by default: Codex and Telegram prompts are skipped here;',
     'echo FMG-customized Paperclip is installed/started locally so the Paperclip tab works.',
@@ -366,7 +378,8 @@ function writeWindowsSetupLauncher(script){
     'echo    If Windows asks for Administrator permission or a reboot, allow it and rerun setup.',
     'echo 3. If Ubuntu opens for the first time, create the Ubuntu username/password,',
     'echo    then return here and run Setup Wizard again. That second run continues to Hermes install.',
-    'echo 4. When Ubuntu is ready, the next stage checks/updates Hermes Agent and FMG WebUI.',
+    'echo 4. When Ubuntu is ready, this setup automatically checks/updates Hermes Agent,',
+    'echo    then checks/updates FMG WebUI and Paperclip.',
     'echo    This can take several minutes. Keep this window open until it prints Done.',
     'echo    Note: this installer targets Hermes Agent v0.14.0 and prints',
     'echo    Hermes source/WebUI/Paperclip commits for freshness checks.',
@@ -436,13 +449,17 @@ async function route(){
     return;
   }
   if(runtimeExists()){
-    loadSetup('starting-existing');
+    await loadSetup('starting-existing');
     startExistingRuntime();
     if(await waitForHealth(35)) win.loadURL(webUrl);
-    else loadSetup('existing-failed');
+    else {
+      await loadSetup('existing-failed');
+      await maybeAutoRunWindowsSetup('existing-runtime-unhealthy');
+    }
     return;
   }
-  loadSetup('first-run');
+  await loadSetup('first-run');
+  await maybeAutoRunWindowsSetup('runtime-missing');
 }
 function createWindow(){
   win = new BrowserWindow({width: 1280, height: 860, title: 'Hermes CEO Console', webPreferences:{preload:path.join(__dirname,'preload.js')}});

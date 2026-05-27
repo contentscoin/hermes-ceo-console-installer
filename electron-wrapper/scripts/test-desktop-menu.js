@@ -38,6 +38,9 @@ assertTextIncludes(preloadText, 'startPaperclipServer', 'Preload should expose P
 assertTextIncludes(preloadText, "ipcRenderer.invoke('start-paperclip-server')", 'Preload should call the Paperclip IPC channel');
 assertTextIncludes(setupHtmlText, 'id="paperclip"', 'Setup screen should show a Paperclip recovery button');
 assertTextIncludes(setupJsText, "$('paperclip').onclick", 'Setup screen Paperclip button should call desktop bridge');
-assertTextIncludes(setupJsText, 'FMG-customized Paperclip은 설치/업데이트하고 로컬 서버를 시작합니다', 'Setup guide should state Paperclip is installed and started by quick setup');
+assertIncludes('async function maybeAutoRunWindowsSetup(', 'Windows auto setup/update function should exist');
+assertIncludes("await maybeAutoRunWindowsSetup('runtime-missing')", 'First-run Windows path should auto launch setup/update');
+assertIncludes("await maybeAutoRunWindowsSetup('existing-runtime-unhealthy')", 'Broken existing runtime should auto launch setup/update');
+assertTextIncludes(setupJsText, 'Hermes Agent를 WSL 안에서 설치/업데이트', 'Setup guide should state Hermes Agent is updated automatically');
 
 console.log('desktop-menu-paperclip-tests-ok');

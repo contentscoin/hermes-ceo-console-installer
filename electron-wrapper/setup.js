@@ -7,7 +7,7 @@ function setStatus(s){ $('status').textContent = s; }
 function setMeta(){ $('meta').textContent = `WebUI: http://127.0.0.1:${port}\nInstall dir: ${dir}\nLog: ~/.hermes/logs/hermes-ceo-console.log`; }
 const setupGuide = [
   'CMD/PowerShell 창이 열리면:',
-  '1. 이 창은 FMG 제공 WebUI를 설치/업데이트하고 바로 실행하는 quick setup입니다.',
+  '1. 이 창은 Hermes Agent를 WSL 안에서 설치/업데이트한 뒤 FMG 제공 WebUI와 Paperclip까지 설치/업데이트하고 바로 실행하는 quick setup입니다.',
   '2. SmartScreen 또는 권한 요청이 나오면 실행/허용을 선택하세요.',
   '3. WSL2/Ubuntu가 없으면 installer가 Ubuntu 설치를 자동으로 시도합니다. 관리자 권한/재부팅 요청이 나오면 허용하세요.',
   '4. Ubuntu 첫 실행 시에는 Ubuntu 사용자 이름과 비밀번호를 한 번 만들어야 합니다.',
@@ -47,8 +47,8 @@ function applyMode(){
     $('start').classList.remove('secondary');
   } else if(mode === 'first-run'){
     $('title').textContent = '처음 설치 / 초기 설정 필요';
-    $('lead').innerHTML = `이 장비에는 아직 Hermes CEO Console 런타임이 감지되지 않았습니다. Setup Wizard를 열면 FMG 제공 WebUI와 FMG-customized Paperclip을 설치/업데이트하고 바로 실행합니다. Codex, Telegram 같은 상세 설정은 WebUI가 열린 뒤 진행합니다.`;
-    setStatus(`“처음 설치 / Setup Wizard”를 누르면 CMD/PowerShell 창이 열립니다.\n\n${setupGuide}`);
+    $('lead').innerHTML = `이 장비에는 아직 Hermes CEO Console 런타임이 감지되지 않았습니다. Windows에서는 앱 첫 실행 시 Setup Wizard가 자동으로 열려 Hermes Agent/WebUI/Paperclip을 설치 또는 업데이트합니다. Codex, Telegram 같은 상세 설정은 WebUI가 열린 뒤 진행합니다.`;
+    setStatus(`Setup Wizard CMD/PowerShell 창을 자동으로 열고 있습니다. 창이 보이지 않으면 아래 “처음 설치 / Setup Wizard”를 직접 누르세요.\n\n${setupGuide}`);
     $('start').classList.add('secondary');
   } else {
     $('title').textContent = 'Hermes CEO Console 상태 확인';
