@@ -15,19 +15,19 @@ Hermes CEO Console Installer Pack은 FMG용 Hermes Agent, FMG 커스터마이징
 
 ## 1. 현재 릴리스
 
-현재 alpha release는 `v0.1.0-alpha.26`입니다.
+현재 alpha release는 `v0.1.0-alpha.27`입니다.
 
 Release 페이지:
 https://github.com/contentscoin/hermes-ceo-console-installer/releases/latest
 
 직접 다운로드:
 
-- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/Hermes.CEO.Console.Setup.0.1.0-alpha.26.exe
-- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/windows-exe.sha256
-- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-macos-arm64.dmg
-- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-macos-arm64.dmg.sha256
-- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-installer-pack.zip
-- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-installer-pack.zip.sha256
+- Windows EXE: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/Hermes.CEO.Console.Setup.0.1.0-alpha.27.exe
+- Windows EXE checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/windows-exe.sha256
+- macOS Apple Silicon DMG: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-macos-arm64.dmg
+- macOS DMG checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-macos-arm64.dmg.sha256
+- Script installer pack: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-installer-pack.zip
+- Script installer pack checksum: https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-installer-pack.zip.sha256
 
 GitHub의 `/releases/download/` 주소는 폴더 페이지가 아닙니다. 반드시 `태그명/파일명`까지 포함된 전체 링크를 사용하세요.
 
@@ -150,7 +150,7 @@ EXE 대신 script pack으로 설치하려면 PowerShell에서 실행합니다.
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
+Invoke-WebRequest -Uri "https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-installer-pack.zip" -OutFile "hermes-ceo-console-installer-pack.zip"
 Expand-Archive .\hermes-ceo-console-installer-pack.zip -DestinationPath .\hermes-ceo-console-installer -Force
 cd .\hermes-ceo-console-installer
 powershell -ExecutionPolicy Bypass -File .\install-windows.ps1 -Yes -SkipCodex -SkipTelegram -SkipOpenCrab
@@ -199,7 +199,7 @@ Unsigned 또는 notarization 상태에 따라 Gatekeeper 경고가 보일 수 �
 ### 5.2 script pack 설치
 
 ```bash
-curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-installer-pack.zip
+curl -L -o hermes-ceo-console-installer-pack.zip https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-installer-pack.zip
 unzip hermes-ceo-console-installer-pack.zip -d hermes-ceo-console-installer
 cd hermes-ceo-console-installer
 chmod +x install-macos.sh scripts/first_run_wizard.py
@@ -932,9 +932,9 @@ node --check electron-wrapper/preload.js
 Release asset 확인:
 
 ```bash
-curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/Hermes.CEO.Console.Setup.0.1.0-alpha.26.exe
-curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-macos-arm64.dmg
-curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.26/hermes-ceo-console-installer-pack.zip
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/Hermes.CEO.Console.Setup.0.1.0-alpha.27.exe
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-macos-arm64.dmg
+curl -L -I https://github.com/contentscoin/hermes-ceo-console-installer/releases/download/v0.1.0-alpha.27/hermes-ceo-console-installer-pack.zip
 ```
 
 Script pack 내용 확인:

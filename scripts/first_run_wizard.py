@@ -466,6 +466,78 @@ exec pnpm paperclipai run --instance default
     print(f'Paperclip health check failed. See log: {log}')
 
 
+
+def repair_webui_workspace_state():
+    """Repair stale WebUI workspace state from earlier Windows builds.
+
+    Some alpha builds could leave the active workspace as the typo path
+    ~/.herems/webui/workspace.  When the WebUI health endpoint is already up,
+    the desktop app can otherwise open the broken UI without presenting setup.
+    Keep the repair idempotent and local to the WSL Hermes home.
+    """
+    state_dir = HERMES / 'webui'
+    default_workspace = str((HERMES / 'webui' / 'workspace').resolve())
+    state_dir.mkdir(parents=True, exist_ok=True)
+    ws_file = state_dir / 'workspaces.json'
+    last_file = state_dir / 'last_workspace.txt'
+
+    entries = []
+    if ws_file.exists():
+        try:
+            raw = json.loads(ws_file.read_text(encoding='utf-8'))
+            if isinstance(raw, list):
+                entries = raw
+        except Exception:
+            entries = []
+
+    cleaned = []
+    seen = set()
+    changed = False
+    for item in entries:
+        if not isinstance(item, dict):
+            changed = True
+            continue
+        path = str(item.get('path') or '').strip()
+        name = str(item.get('name') or '').strip() or 'Workspace'
+        if '.herems' in path:
+            path = path.replace('.herems', '.hermes')
+            changed = True
+        p = Path(path).expanduser()
+        if not path or not p.is_dir():
+            changed = True
+            continue
+        resolved = str(p.resolve())
+        if resolved in seen:
+            changed = True
+            continue
+        seen.add(resolved)
+        cleaned.append({'path': resolved, 'name': name})
+
+    if default_workspace not in seen:
+        cleaned.insert(0, {'path': default_workspace, 'name': 'Home'})
+        changed = True
+    else:
+        cleaned = [{'path': default_workspace, 'name': 'Home'}] + [w for w in cleaned if w['path'] != default_workspace]
+
+    ws_file.write_text(json.dumps(cleaned, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+    last = ''
+    if last_file.exists():
+        try:
+            last = last_file.read_text(encoding='utf-8').strip()
+        except Exception:
+            last = ''
+    repaired_last = last.replace('.herems', '.hermes') if last else ''
+    if repaired_last and Path(repaired_last).expanduser().is_dir():
+        repaired_last = str(Path(repaired_last).expanduser().resolve())
+    else:
+        repaired_last = default_workspace
+    if repaired_last != last:
+        changed = True
+    last_file.write_text(repaired_last, encoding='utf-8')
+    if changed:
+        print(f'Repaired WebUI workspace state: {default_workspace}')
+
 def configure_integrations(args):
     updates = {}
     if not args.skip_paperclip:
@@ -549,6 +621,7 @@ def main():
     print('Hermes CEO Console setup wizard')
     install_hermes_if_missing(args.yes, args.skip_hermes_update)
     clone_or_update(args.repo, install_dir, args.repo_ref, args.expected_webui_commit)
+    repair_webui_workspace_state()
     configure_integrations(args)
     install_or_update_paperclip(args)
     configure_opencrab_mcp(args)

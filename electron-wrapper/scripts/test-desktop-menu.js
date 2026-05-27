@@ -42,5 +42,8 @@ assertIncludes('async function maybeAutoRunWindowsSetup(', 'Windows auto setup/u
 assertIncludes("await maybeAutoRunWindowsSetup('runtime-missing')", 'First-run Windows path should auto launch setup/update');
 assertIncludes("await maybeAutoRunWindowsSetup('existing-runtime-unhealthy')", 'Broken existing runtime should auto launch setup/update');
 assertTextIncludes(setupJsText, 'Hermes Agent를 WSL 안에서 설치/업데이트', 'Setup guide should state Hermes Agent is updated automatically');
+assertIncludes('async function webuiWorkspaceBroken(', 'Healthy WebUI should still be checked for broken workspace state');
+assertIncludes("await maybeAutoRunWindowsSetup('workspace-state-broken')", 'Broken WebUI workspace state should auto launch setup/update');
+assertMatches(/\\.herems/, 'Workspace typo .herems should be explicitly detected and repaired');
 
 console.log('desktop-menu-paperclip-tests-ok');

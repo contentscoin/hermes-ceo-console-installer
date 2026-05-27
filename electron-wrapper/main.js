@@ -169,6 +169,38 @@ function probeHttpOk(url){
     req.on('error', () => resolve(false));
   });
 }
+function fetchJson(url, timeoutMs=2000){
+  return new Promise(resolve => {
+    const req = http.get(url, res => {
+      let body = '';
+      res.setEncoding('utf8');
+      res.on('data', chunk => { body += chunk; });
+      res.on('end', () => {
+        if(res.statusCode < 200 || res.statusCode >= 300) return resolve(null);
+        try { resolve(JSON.parse(body)); }
+        catch(_) { resolve(null); }
+      });
+    });
+    req.setTimeout(timeoutMs, () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+  });
+}
+function workspaceStatusLooksBroken(status){
+  const paths = [];
+  if(status && typeof status.last === 'string') paths.push(status.last);
+  for(const w of (status && Array.isArray(status.workspaces) ? status.workspaces : [])){
+    if(w && typeof w.path === 'string') paths.push(w.path);
+  }
+  const joined = paths.join('\n');
+  if(/\.herems(\/|\\|$)/i.test(joined)) return true;
+  return false;
+}
+async function webuiWorkspaceBroken(){
+  const status = await fetchJson(`${webUrl}/api/workspaces`, 2000);
+  const broken = workspaceStatusLooksBroken(status);
+  if(broken) appendLog(`workspace status appears broken: ${JSON.stringify(status)}`);
+  return broken;
+}
 function health(){ return probeHttpOk(`${webUrl}/health`); }
 function paperclipHealth(){ return probeHttpOk(paperclipHealthUrl); }
 async function waitForHealth(seconds=35){
@@ -445,6 +477,11 @@ async function runSetup(){
 }
 async function route(){
   if(await health()){
+    if(await webuiWorkspaceBroken()){
+      await loadSetup('existing-failed');
+      await maybeAutoRunWindowsSetup('workspace-state-broken');
+      return;
+    }
     win.loadURL(webUrl);
     return;
   }
